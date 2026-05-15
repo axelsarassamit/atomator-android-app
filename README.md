@@ -9,6 +9,7 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 ## Features
 
 - Direct SSH from your phone - no server needed
+- **In-app updates** - check and install new versions from Settings
 - 44+ remote commands as tap actions
 - Parallel execution with live results
 - Fleet dashboard with health overview
@@ -34,7 +35,9 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 
 | Version | Changes |
 |---------|---------|
-| v1.1.5 | Fix version numbers, About screen, README, app signing |
+| v1.2.0 | In-app updates - check and download new versions from Settings |
+| v1.1.7 | Updated logos and icons |
+| v1.1.5 | Fix version numbers, About screen, README |
 | v1.1.4 | Restore custom creds, remove group, fix MAC collection |
 | v1.1.3 | Fix Dart $ escape in MAC command |
 | v1.1.0 | Per-host credentials, WOL, About screen, edit host |
