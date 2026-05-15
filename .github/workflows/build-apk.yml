@@ -42,8 +42,19 @@ jobs:
       - name: Restore source
         run: rm -rf lib assets pubspec.yaml && mv lib_bak lib && mv assets_bak assets && mv pubspec_bak.yaml pubspec.yaml
 
-      - name: Fix NDK
-        run: sed -i '/android {/a\        ndkVersion = "27.0.12077973"' android/app/build.gradle.kts
+      - name: Fix NDK and Maven repos
+        run: |
+          sed -i '/android {/a\        ndkVersion = "27.0.12077973"' android/app/build.gradle.kts
+          # Add Google Maven as primary repo to avoid Maven Central 403
+          cat > android/fix_repos.gradle.kts << 'REPOFIX'
+          allprojects {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          REPOFIX
+          echo 'apply from: "fix_repos.gradle.kts"' >> android/build.gradle.kts
 
       - name: Dependencies
         run: flutter pub get
@@ -51,8 +62,9 @@ jobs:
       - name: Icons
         run: dart run flutter_launcher_icons || true
 
-      - name: Build
-        run: flutter build apk
+      - name: Build (with retry)
+        run: |
+          flutter build apk || sleep 30 && flutter build apk || sleep 60 && flutter build apk
 
       - name: Rename
         run: cp build/app/outputs/flutter-apk/app-release.apk "atomator.${{ steps.version.outputs.version }}.apk"
