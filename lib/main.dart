@@ -4,7 +4,6 @@ import 'services/storage_service.dart';
 import 'providers/host_provider.dart';
 import 'providers/job_provider.dart';
 import 'screens/home_screen.dart';
-import 'screens/setup_screen.dart';
 import 'screens/splash_screen.dart';
 import 'theme.dart';
 
@@ -30,12 +29,7 @@ class AtomatorApp extends StatelessWidget {
         title: 'Atomator',
         theme: atomatorTheme,
         debugShowCheckedModeBanner: false,
-        home: Consumer<HostProvider>(
-          builder: (context, hp, _) {
-            if (!hp.isConfigured) return SetupScreen(storage: storage);
-            return SplashScreen(nextScreen: const HomeScreen());
-          },
-        ),
+        home: const SplashScreen(nextScreen: HomeScreen()),
       ),
     );
   }
