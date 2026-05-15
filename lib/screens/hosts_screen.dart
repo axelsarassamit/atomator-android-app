@@ -11,7 +11,7 @@ class HostsScreen extends StatelessWidget {
     return Consumer<HostProvider>(builder: (context, hp, _) {
       return Scaffold(
         appBar: AppBar(title: Text('Hosts (' + hp.hosts.length.toString() + ')'), actions: [
-          IconButton(icon: const Icon(Icons.refresh), tooltip: 'Check status', onPressed: () => hp.checkHostStatus()),
+          hp.isChecking ? const Padding(padding: EdgeInsets.all(12), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))) : IconButton(icon: const Icon(Icons.refresh), tooltip: 'Check status', onPressed: () => hp.checkHostStatus()),
           IconButton(icon: const Icon(Icons.add), tooltip: 'Add host', onPressed: () => _addDialog(context, hp)),
         ]),
         body: ListView(children: hp.groups.map((g) {
