@@ -5,7 +5,7 @@ import 'package:path_provider/path_provider.dart';
 
 class UpdateService {
   static const String _repo = 'axelsarassamit/atomator-android-app';
-  static const String currentVersion = '1.2.5';
+  static const String currentVersion = '1.2.6';
 
   static Future<Map<String, dynamic>?> checkForUpdate() async {
     try {
