@@ -6,23 +6,24 @@ class Host {
   String? mac;
   String group;
   bool isOnline;
+  bool sshOpen;
   DateTime? lastSeen;
   String? customUser;
   String? customPass;
 
-  Host({required this.ip, this.hostname, this.mac, this.group = 'default', this.isOnline = false, this.lastSeen, this.customUser, this.customPass});
+  Host({required this.ip, this.hostname, this.mac, this.group = 'default', this.isOnline = false, this.sshOpen = false, this.lastSeen, this.customUser, this.customPass});
 
   bool get hasCustomCreds => customUser != null && customUser!.isNotEmpty;
 
   Map<String, dynamic> toJson() => {
     'ip': ip, 'hostname': hostname, 'mac': mac, 'group': group,
-    'isOnline': isOnline, 'lastSeen': lastSeen?.toIso8601String(),
+    'isOnline': isOnline, 'sshOpen': sshOpen, 'lastSeen': lastSeen?.toIso8601String(),
     'customUser': customUser, 'customPass': customPass,
   };
 
   factory Host.fromJson(Map<String, dynamic> json) => Host(
     ip: json['ip'], hostname: json['hostname'], mac: json['mac'],
-    group: json['group'] ?? 'default', isOnline: json['isOnline'] ?? false,
+    group: json['group'] ?? 'default', isOnline: json['isOnline'] ?? false, sshOpen: json['sshOpen'] ?? false,
     lastSeen: json['lastSeen'] != null ? DateTime.parse(json['lastSeen']) : null,
     customUser: json['customUser'], customPass: json['customPass'],
   );
