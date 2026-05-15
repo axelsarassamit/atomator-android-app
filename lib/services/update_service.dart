@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:open_filex/open_filex.dart';
 
 class UpdateService {
-  static const String currentVersion = '1.2.15';
+  static const String currentVersion = '1.2.16';
   static const String _repo = 'axelsarassamit/atomator-android-app';
 
   static Future<Map<String, dynamic>?> checkForUpdate() async {
@@ -19,8 +20,7 @@ class UpdateService {
       final tagName = (data['tag_name'] as String).replaceFirst('v', '');
       if (!_isNewer(tagName, currentVersion)) return null;
       final assets = data['assets'] as List;
-      String? apkUrl;
-      String? apkName;
+      String? apkUrl, apkName;
       for (final asset in assets) {
         final name = asset['name'] as String;
         if (name.endsWith('.apk')) {
@@ -29,13 +29,7 @@ class UpdateService {
           break;
         }
       }
-      return {
-        'version': tagName,
-        'current': currentVersion,
-        'apkUrl': apkUrl,
-        'apkName': apkName,
-        'body': data['body'] ?? '',
-      };
+      return {'version': tagName, 'current': currentVersion, 'apkUrl': apkUrl, 'apkName': apkName, 'body': data['body'] ?? ''};
     } catch (e) {
       return {'error': e.toString(), 'current': currentVersion};
     }
@@ -66,18 +60,20 @@ class UpdateService {
 
   static Future<bool> installApk(String filePath) async {
     try {
-      final result = await Process.run('content', ['open', filePath]);
-      if (result.exitCode != 0) {
-        await Process.run('am', [
-          'start', '-a', 'android.intent.action.VIEW',
-          '-t', 'application/vnd.android.package-archive',
-          '-d', 'file://' + filePath,
-          '--grant-read-uri-permission',
-        ]);
-      }
-      return true;
+      final result = await OpenFilex.open(filePath, type: 'application/vnd.android.package-archive');
+      return result.type == ResultType.done;
     } catch (e) {
       return false;
+    }
+  }
+
+  static Future<void> openDownloads() async {
+    try {
+      await Process.run('am', ['start', '-a', 'android.intent.action.VIEW', '-d', 'content://com.android.externalstorage.documents/document/primary:Download', '-t', 'vnd.android.document/directory']);
+    } catch (_) {
+      try {
+        await Process.run('am', ['start', '-a', 'android.intent.action.VIEW', '-d', 'file:///storage/emulated/0/Download/', '-t', 'resource/folder']);
+      } catch (_) {}
     }
   }
 
