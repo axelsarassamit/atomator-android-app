@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/host_provider.dart';
 import '../models/models.dart';
-import 'about_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -12,20 +11,16 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(children: [
         _sec('CREDENTIALS'),
-        ListTile(leading: const Icon(Icons.person, color: Colors.cyan), title: const Text('SSH Username'), subtitle: Text(hp.credentials?.username ?? 'Not set'), onTap: () => _editCreds(context, hp)),
+        ListTile(leading: const Icon(Icons.person, color: Colors.cyan), title: const Text('SSH Username'), subtitle: Text(hp.credentials?.username ?? 'Not set', style: const TextStyle(color: Colors.white38)), onTap: () => _editCreds(context, hp)),
         ListTile(leading: const Icon(Icons.lock, color: Colors.cyan), title: const Text('SSH Password'), subtitle: const Text('********'), onTap: () => _editCreds(context, hp)),
         _sec('FLEET'),
-        ListTile(leading: const Icon(Icons.computer, color: Colors.cyan), title: Text(hp.hosts.length.toString() + ' hosts in ' + hp.groups.length.toString() + ' groups'),
-          subtitle: Text(hp.onlineCount.toString() + ' online, ' + hp.offlineCount.toString() + ' offline')),
-        ListTile(leading: const Icon(Icons.wifi, color: Colors.cyan), title: const Text('Collect MAC Addresses'), subtitle: const Text('For Wake-on-LAN'), onTap: () { hp.collectMacAddresses(); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Collecting MACs...'))); }),
-        _sec('APP'),
-        ListTile(leading: const Icon(Icons.info, color: Colors.cyan), title: const Text('About Atomator'), subtitle: const Text('Creator, links, version'),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()))),
+        ListTile(leading: const Icon(Icons.computer, color: Colors.cyan), title: Text('${hp.hosts.length} hosts in ${hp.groups.length} groups'), subtitle: Text('${hp.onlineCount} online, ${hp.offlineCount} offline')),
+        _sec('ABOUT'),
+        const ListTile(leading: Icon(Icons.info, color: Colors.cyan), title: Text('Atomator Mobile v1.0.0'), subtitle: Text('Based on Atomator v.02.09.00')),
         _sec('DANGER'),
         ListTile(leading: const Icon(Icons.delete_forever, color: Colors.red), title: const Text('Clear All Data', style: TextStyle(color: Colors.red)),
-          onTap: () => showDialog(context: context, builder: (_) => AlertDialog(backgroundColor: const Color(0xFF161B22), title: const Text('Clear all?'),
-            actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-              ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.red), onPressed: () { hp.clearAll(); Navigator.pop(context); }, child: const Text('Clear'))]))),
+          onTap: () => showDialog(context: context, builder: (_) => AlertDialog(backgroundColor: const Color(0xFF161B22), title: const Text('Clear all?'), content: const Text('Removes hosts and credentials.'),
+            actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.red), onPressed: () { hp.clearAll(); Navigator.pop(context); }, child: const Text('Clear'))]))),
       ]),
     ));
   }
