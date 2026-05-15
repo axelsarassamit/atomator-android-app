@@ -181,7 +181,10 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
         const Text('Downloaded!', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         SizedBox(width: double.infinity, child: ElevatedButton.icon(icon: const Icon(Icons.install_mobile), label: const Text('Install Now'),
-          onPressed: () async { final ok = await UpdateService.installApk(_downloadedPath!); if (!ok) setState(() => _error = 'Open file manager and install from Downloads folder'); })),
+          onPressed: () async { final ok = await UpdateService.installApk(_downloadedPath!); if (!ok) setState(() => _error = 'Tap Open Downloads below and install the APK manually'); })),
+        const SizedBox(height: 8),
+        SizedBox(width: double.infinity, child: OutlinedButton.icon(icon: const Icon(Icons.folder_open), label: const Text('Open Downloads Folder'),
+          onPressed: () => UpdateService.openDownloads())),
         const SizedBox(height: 8),
         Text('Saved to: ' + (_downloadedPath ?? ''), style: const TextStyle(fontSize: 10, color: Colors.white24)),
       ] else ...[
