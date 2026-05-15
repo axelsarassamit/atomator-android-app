@@ -21,17 +21,17 @@ class SSHService {
   }
 
   static Future<bool> ping(String host, {int timeoutSec = 5}) async {
-    // Try SSH port first (most reliable for our use case)
+    // Try ICMP ping first (works even if SSH is not running)
+    try {
+      final result = await Process.run('ping', ['-c', '1', '-W', timeoutSec.toString(), host]);
+      if (result.exitCode == 0) return true;
+    } catch (_) {}
+
+    // Fall back to SSH port check
     try {
       final s = await Socket.connect(host, 22, timeout: Duration(seconds: timeoutSec));
       s.destroy();
       return true;
-    } catch (_) {}
-
-    // Fall back to ICMP ping
-    try {
-      final result = await Process.run('ping', ['-c', '1', '-W', timeoutSec.toString(), host]);
-      if (result.exitCode == 0) return true;
     } catch (_) {}
 
     return false;
