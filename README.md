@@ -65,6 +65,7 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 | v1.2.8 | Fix bad import path in update service |
 | v1.2.9 | Add internet, network, install, storage permissions to AndroidManifest |
 | v1.2.10 | All permissions: local network, WiFi, WOL multicast, storage, install packages, network security config |
+| v1.2.11 | Fix same-version showing as update - now shows Up to date correctly |
 | v1.2.0 | In-app updates - check and download new versions from Settings |
 | v1.1.7 | Updated logos and icons |
 | v1.1.5 | Fix version numbers, About screen, README |
