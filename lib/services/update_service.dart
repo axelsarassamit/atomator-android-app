@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import '../../lib/version.dart' as ver;
 
 class UpdateService {
   static const String currentVersion = '1.2.7';
