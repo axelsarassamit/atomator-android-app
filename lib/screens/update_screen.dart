@@ -120,6 +120,7 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
           const Center(child: CircularProgressIndicator()),
           const SizedBox(height: 16),
           const Center(child: Text('Checking for updates...', style: TextStyle(color: Colors.white38))),
+            ] else if (_update != null && _update!.containsKey('error')) ...[  const Icon(Icons.error, color: Colors.orange, size: 48), const SizedBox(height: 16), Text('Could not check: ' + (_update!['error'] ?? ''), style: const TextStyle(color: Colors.orange, fontSize: 12)), const SizedBox(height: 16), ElevatedButton(onPressed: _checkUpdate, child: const Text('Retry')),
         ] else if (_update == null) ...[
           const Icon(Icons.check_circle, color: Colors.green, size: 48),
           const SizedBox(height: 16),
