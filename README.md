@@ -72,6 +72,7 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 | v1.2.15 | Add debug screen: test internet, local network, SSH, ping, file access |
 | v1.2.16 | Fix APK install using open_filex, add Open Downloads folder button |
 | v1.2.17 | Persistent APK signing with keystore - updates install without uninstalling |
+| v1.2.18 | Progress bar on Check All Hosts, spinner on Hosts refresh, sequential checking with live updates |
 | v1.2.0 | In-app updates - check and download new versions from Settings |
 | v1.1.7 | Updated logos and icons |
 | v1.1.5 | Fix version numbers, About screen, README |
