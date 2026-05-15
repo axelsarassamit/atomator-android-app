@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/storage_service.dart';
@@ -84,11 +85,21 @@ class HostProvider extends ChangeNotifier {
 
     for (final h in _hosts) {
       h.isOnline = await SSHService.ping(h.ip);
-      if (h.isOnline && _credentials != null) {
+      h.sshOpen = false;
+      if (h.isOnline) {
+        // Check SSH port separately
         try {
-          final r = await SSHService.runCommand(h.ip, credsForHost(h), 'hostname', timeoutSec: 5);
-          if (r.success) h.hostname = r.output;
+          final s = await Socket.connect(h.ip, 22, timeout: const Duration(seconds: 3));
+          s.destroy();
+          h.sshOpen = true;
         } catch (_) {}
+        // Get hostname if SSH works
+        if (h.sshOpen && _credentials != null) {
+          try {
+            final r = await SSHService.runCommand(h.ip, credsForHost(h), 'hostname', timeoutSec: 5);
+            if (r.success) h.hostname = r.output;
+          } catch (_) {}
+        }
       }
       h.lastSeen = h.isOnline ? DateTime.now() : h.lastSeen;
       _checkProgress++;
