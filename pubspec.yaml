@@ -1,7 +1,7 @@
 name: atomator_app
-description: Atomator - Remote Xubuntu Management from your phone
+description: Atomator - Remote Xubuntu Management
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   sdk: ^3.7.0
@@ -19,6 +19,18 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.0
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/images/app_icon.png"
+  adaptive_icon_background: "#0D1117"
+  adaptive_icon_foreground: "assets/images/app_icon.png"
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/splash_logo.png
+    - assets/images/atomator_banner.png
+    - assets/images/app_icon.png
