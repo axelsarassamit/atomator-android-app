@@ -8,12 +8,19 @@ class HostProvider extends ChangeNotifier {
   List<Host> _hosts = [];
   Credentials? _credentials;
   bool _isConfigured = false;
+  bool _isChecking = false;
+  int _checkProgress = 0;
+  int _checkTotal = 0;
 
   HostProvider(this._storage) { _loadData(); }
 
   List<Host> get hosts => _hosts;
   Credentials? get credentials => _credentials;
   bool get isConfigured => _isConfigured;
+  bool get isChecking => _isChecking;
+  int get checkProgress => _checkProgress;
+  int get checkTotal => _checkTotal;
+  String get checkStatus => _isChecking ? "Checking " + _checkProgress.toString() + "/" + _checkTotal.toString() : "";
   int get onlineCount => _hosts.where((h) => h.isOnline).length;
   int get offlineCount => _hosts.where((h) => !h.isOnline).length;
   List<String> get groups => _hosts.map((h) => h.group).toSet().toList()..sort();
@@ -70,19 +77,26 @@ class HostProvider extends ChangeNotifier {
   }
 
   Future<void> checkHostStatus() async {
-    final futures = _hosts.map((h) async {
+    _isChecking = true;
+    _checkProgress = 0;
+    _checkTotal = _hosts.length;
+    notifyListeners();
+
+    for (final h in _hosts) {
       h.isOnline = await SSHService.ping(h.ip);
-      if (h.isOnline) {
+      if (h.isOnline && _credentials != null) {
         try {
-          final creds = credsForHost(h);
-          final r = await SSHService.runCommand(h.ip, creds, 'hostname', timeoutSec: 5);
+          final r = await SSHService.runCommand(h.ip, credsForHost(h), 'hostname', timeoutSec: 5);
           if (r.success) h.hostname = r.output;
         } catch (_) {}
       }
       h.lastSeen = h.isOnline ? DateTime.now() : h.lastSeen;
-    });
-    await Future.wait(futures);
+      _checkProgress++;
+      notifyListeners();
+    }
+
     await _storage.saveHosts(_hosts);
+    _isChecking = false;
     notifyListeners();
   }
 
