@@ -20,8 +20,21 @@ class SSHService {
     } catch (e) { sw.stop(); return SSHResult(host: host, success: false, output: e.toString(), duration: sw.elapsed); }
   }
 
-  static Future<bool> ping(String host, {int timeoutSec = 3}) async {
-    try { final s = await Socket.connect(host, 22, timeout: Duration(seconds: timeoutSec)); s.destroy(); return true; } catch (_) { return false; }
+  static Future<bool> ping(String host, {int timeoutSec = 5}) async {
+    // Try SSH port first (most reliable for our use case)
+    try {
+      final s = await Socket.connect(host, 22, timeout: Duration(seconds: timeoutSec));
+      s.destroy();
+      return true;
+    } catch (_) {}
+
+    // Fall back to ICMP ping
+    try {
+      final result = await Process.run('ping', ['-c', '1', '-W', timeoutSec.toString(), host]);
+      if (result.exitCode == 0) return true;
+    } catch (_) {}
+
+    return false;
   }
 
   static Stream<SSHResult> runOnAll(List<Host> hosts, Credentials creds, String command, {bool sudo = false, int maxParallel = 5, int timeoutSec = 60}) async* {
