@@ -18,7 +18,7 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 4),
             const Text('v1.2.3', style: TextStyle(fontSize: 14, color: Colors.white38)),
             const SizedBox(height: 24),
-            const Text('Remote Xubuntu fleet management from your phone.\nDirect SSH - no server needed.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white60)),
+            const Text('Remote Linux fleet management from your phone.\nDirect SSH - no server needed.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white60)),
             const SizedBox(height: 32),
             _tile(context, Icons.person, 'Created by', 'Axel Sarassamit'),
             _tile(context, Icons.email, 'Email', 'axel.sarassamit@gmail.com'),
