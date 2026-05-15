@@ -36,40 +36,32 @@ jobs:
       - name: Backup source
         run: cp -r lib lib_bak && cp -r assets assets_bak && cp pubspec.yaml pubspec_bak.yaml
 
-      - name: Create project
-        run: flutter create --project-name atomator_app .
+      - name: Clean and create project
+        run: |
+          rm -rf android ios web linux macos windows test
+          flutter create --project-name atomator_app .
 
       - name: Restore source
         run: rm -rf lib assets pubspec.yaml && mv lib_bak lib && mv assets_bak assets && mv pubspec_bak.yaml pubspec.yaml
 
       - name: Patch Android config
         run: |
-          python3 << 'PYEOF'
-          import re
+          python3 -c "
+          # Fix app name
+          f = open('android/app/src/main/AndroidManifest.xml'); c = f.read(); f.close()
+          c = c.replace('android:label="atomator_app"', 'android:label="Atomator"')
+          f = open('android/app/src/main/AndroidManifest.xml', 'w'); f.write(c); f.close()
 
-          # Fix app name in AndroidManifest
-          with open('android/app/src/main/AndroidManifest.xml', 'r') as f:
-              m = f.read()
-          m = m.replace('android:label="atomator_app"', 'android:label="Atomator"')
-          with open('android/app/src/main/AndroidManifest.xml', 'w') as f:
-              f.write(m)
+          # Fix NDK
+          f = open('android/app/build.gradle.kts'); c = f.read(); f.close()
+          c = c.replace('android {', 'android {\n        ndkVersion = "27.0.12077973"', 1)
+          f = open('android/app/build.gradle.kts', 'w'); f.write(c); f.close()
 
-          # Fix NDK version in build.gradle.kts
-          with open('android/app/build.gradle.kts', 'r') as f:
-              b = f.read()
-          b = b.replace('android {', 'android {
-        ndkVersion = "27.0.12077973"', 1)
-          with open('android/app/build.gradle.kts', 'w') as f:
-              f.write(b)
-
-          # Add Google Maven mirror to settings.gradle.kts
-          with open('android/settings.gradle.kts', 'r') as f:
-              s = f.read()
-          s = s.replace('gradlePluginPortal()', 'google()\n                gradlePluginPortal()')
-          s = s.replace('mavenCentral()', 'google()\n                mavenCentral()')
-          with open('android/settings.gradle.kts', 'w') as f:
-              f.write(s)
-          PYEOF
+          # Add Google Maven mirror
+          f = open('android/settings.gradle.kts'); c = f.read(); f.close()
+          c = c.replace('gradlePluginPortal()', 'google()\n                gradlePluginPortal()')
+          f = open('android/settings.gradle.kts', 'w'); f.write(c); f.close()
+          "
 
       - name: Dependencies
         run: flutter pub get
