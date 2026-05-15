@@ -76,11 +76,10 @@ class HostProvider extends ChangeNotifier {
   }
 
   Future<void> collectMacAddresses() async {
-    final cmd = 'IFACE=\$(ip route | grep default | head -1 | tr -s " " | cut -d" " -f5); cat /sys/class/net/\$IFACE/address 2>/dev/null || echo N/A';
     final futures = _hosts.where((h) => h.isOnline).map((h) async {
       try {
-        final r = await SSHService.runCommand(h.ip, credsForHost(h), cmd, timeoutSec: 5);
-        if (r.success && r.output != 'N/A') h.mac = r.output;
+        final r = await SSHService.runCommand(h.ip, credsForHost(h), 'ip link show | grep -A1 "state UP" | grep link/ether | head -1 | tr -s " " | cut -d" " -f3', timeoutSec: 5);
+        if (r.success && r.output.isNotEmpty && r.output != 'N/A') h.mac = r.output.trim();
       } catch (_) {}
     });
     await Future.wait(futures);
