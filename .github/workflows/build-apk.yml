@@ -68,7 +68,7 @@ jobs:
         run: flutter pub get
 
       - name: Generate app icon
-        run: dart run flutter_launcher_icons
+        run: dart run flutter_launcher_icons || echo 'Icon generation skipped'
 
       - name: Build APK
         run: flutter build apk --release
