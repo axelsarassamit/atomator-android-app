@@ -1,7 +1,7 @@
 name: atomator_app
 description: Atomator - Remote Linux Fleet Management
 publish_to: 'none'
-version: 1.2.10+21
+version: 1.2.11+22
 
 environment:
   sdk: ^3.7.0
