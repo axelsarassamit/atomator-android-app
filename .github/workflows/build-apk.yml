@@ -4,8 +4,6 @@ on:
   push:
     branches: [main]
     tags: ['v*']
-  pull_request:
-    branches: [main]
 
 permissions:
   contents: write
@@ -13,83 +11,61 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Get version from tag or commit
+      - name: Get version
         id: version
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            VERSION="${GITHUB_REF#refs/tags/v}"
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
           else
-            VERSION="dev-$(echo $GITHUB_SHA | cut -c1-7)"
+            echo "version=dev-$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
           fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.29.0
           channel: stable
 
-      - name: Backup lib and assets folders
-        run: |
-          cp -r lib lib_backup
-          cp -r assets assets_backup 2>/dev/null || true
-          cp pubspec.yaml pubspec_backup.yaml
+      - name: Backup source
+        run: cp -r lib lib_bak && cp -r assets assets_bak && cp pubspec.yaml pubspec_bak.yaml
 
-      - name: Create Flutter project structure
+      - name: Create project
         run: flutter create --project-name atomator_app .
 
-      - name: Restore lib, assets, and pubspec
-        run: |
-          rm -rf lib && mv lib_backup lib
-          rm -rf assets && mv assets_backup assets 2>/dev/null || true
-          mv pubspec_backup.yaml pubspec.yaml
+      - name: Restore source
+        run: rm -rf lib assets pubspec.yaml && mv lib_bak lib && mv assets_bak assets && mv pubspec_bak.yaml pubspec.yaml
 
-      - name: Fix NDK version
-        run: |
-          sed -i '/android {/a\        ndkVersion = "27.0.12077973"' android/app/build.gradle.kts
+      - name: Fix NDK
+        run: sed -i '/android {/a\        ndkVersion = "27.0.12077973"' android/app/build.gradle.kts
 
-      - name: Configure signing
-        run: |
-          keytool -genkey -v -keystore android/app/upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias atomator -storepass atomator123 -keypass atomator123 -dname "CN=Atomator, OU=Dev, O=Atomator, L=SE, ST=SE, C=SE"
-          sed -i '/buildTypes {/i\    signingConfigs {\n        create("release") {\n            storeFile = file("upload-keystore.jks")\n            storePassword = "atomator123"\n            keyAlias = "atomator"\n            keyPassword = "atomator123"\n        }\n    }' android/app/build.gradle.kts
-          sed -i 's/signingConfig = signingConfigs.getByName("debug")/signingConfig = signingConfigs.getByName("release")/' android/app/build.gradle.kts
-
-      - name: Get dependencies
+      - name: Dependencies
         run: flutter pub get
 
-      - name: Generate app icon
-        run: dart run flutter_launcher_icons || echo 'Icon generation skipped'
+      - name: Icons
+        run: dart run flutter_launcher_icons || true
 
-      - name: Build APK
-        run: flutter build apk --release
+      - name: Build
+        run: flutter build apk
 
-      - name: Rename APK
-        run: |
-          cp build/app/outputs/flutter-apk/app-release.apk "atomator.${{ steps.version.outputs.version }}.apk"
+      - name: Rename
+        run: cp build/app/outputs/flutter-apk/app-release.apk "atomator.${{ steps.version.outputs.version }}.apk"
 
-      - name: Upload APK artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: atomator-${{ steps.version.outputs.version }}
           path: "atomator.${{ steps.version.outputs.version }}.apk"
 
-      - name: Create Release with APK
+      - name: Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: "atomator.${{ steps.version.outputs.version }}.apk"
           name: "Atomator Mobile ${{ steps.version.outputs.version }}"
-          body: |
-            ## Atomator Mobile ${{ steps.version.outputs.version }}
-
-            Download `atomator.${{ steps.version.outputs.version }}.apk` and install on your Android phone.
