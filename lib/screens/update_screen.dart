@@ -71,7 +71,7 @@ class _UpdateScreenState extends State<UpdateScreen> {
               const SizedBox(height: 16),
               const Text('You are on the latest version!', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              Text('Current: v' + UpdateService._currentVersion, style: const TextStyle(color: Colors.white38)),
+              Text('Current: v' + UpdateService.currentVersion, style: const TextStyle(color: Colors.white38)),
               const SizedBox(height: 24),
               ElevatedButton(onPressed: _checkUpdate, child: const Text('Check Again')),
             ] else ...[
