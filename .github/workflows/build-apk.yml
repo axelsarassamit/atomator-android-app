@@ -34,7 +34,12 @@ jobs:
           channel: stable
 
       - name: Backup source
-        run: cp -r lib lib_bak && cp -r assets assets_bak && cp pubspec.yaml pubspec_bak.yaml && cp -r scripts scripts_bak && cp -r android_manifest android_manifest_bak
+        run: |
+          cp -r lib lib_bak
+          cp -r assets assets_bak
+          cp pubspec.yaml pubspec_bak.yaml
+          cp -r scripts scripts_bak
+          cp -r android_manifest android_manifest_bak
 
       - name: Clean and create project
         run: |
@@ -43,7 +48,7 @@ jobs:
 
       - name: Restore source
         run: |
-          rm -rf lib assets pubspec.yaml scripts
+          rm -rf lib assets pubspec.yaml scripts android_manifest
           mv lib_bak lib
           mv assets_bak assets
           mv pubspec_bak.yaml pubspec.yaml
@@ -53,19 +58,21 @@ jobs:
       - name: Patch Android config
         run: python3 scripts/patch_android.py
 
+      - name: Setup signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: python3 scripts/setup_signing.py
+
       - name: Dependencies
         run: flutter pub get
 
       - name: Generate app icon
-        run: |
-          echo "Icon source exists:"
-          ls -la assets/images/app_icon.png
-          dart run flutter_launcher_icons
-          echo "Generated icons:"
-          ls -la android/app/src/main/res/mipmap-*/ic_launcher.png || echo "No icons generated!"
+        run: dart run flutter_launcher_icons
 
       - name: Build APK
-        run: flutter build apk
+        run: flutter build apk --release
 
       - name: Rename APK
         run: cp build/app/outputs/flutter-apk/app-release.apk "atomator.${{ steps.version.outputs.version }}.apk"
