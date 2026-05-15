@@ -42,12 +42,33 @@ jobs:
       - name: Restore source
         run: rm -rf lib assets pubspec.yaml && mv lib_bak lib && mv assets_bak assets && mv pubspec_bak.yaml pubspec.yaml
 
-      - name: Fix app name and NDK
+      - name: Fix app name, NDK, and Maven repos
         run: |
-          # Change app display name to "Atomator"
           sed -i 's/android:label="atomator_app"/android:label="Atomator"/' android/app/src/main/AndroidManifest.xml
-          # Fix NDK version
           sed -i '/android {/a\        ndkVersion = "27.0.12077973"' android/app/build.gradle.kts
+
+          # Fix Maven Central 403 by adding mirrors to settings.gradle.kts
+          cat > /tmp/fix_repos.py << 'PYEOF'
+          import re
+          with open('android/settings.gradle.kts', 'r') as f:
+              content = f.read()
+          # Add maven mirrors before any mavenCentral() call
+          content = content.replace(
+              'mavenCentral()',
+              '''maven { url = uri("https://maven.google.com") }
+                mavenCentral()
+                maven { url = uri("https://jcenter.bintray.com") }'''
+          )
+          # Also ensure pluginManagement has google() first
+          content = content.replace(
+              'gradlePluginPortal()',
+              '''google()
+                gradlePluginPortal()'''
+          )
+          with open('android/settings.gradle.kts', 'w') as f:
+              f.write(content)
+          PYEOF
+          python3 /tmp/fix_repos.py
 
       - name: Dependencies
         run: flutter pub get
