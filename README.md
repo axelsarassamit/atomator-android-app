@@ -68,6 +68,7 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 | v1.2.3 | Fix app icon generation with debug output |
 | v1.2.2 | Fix all version references across all files |
 | v1.2.1 | Fix private member access in update service |
+| v1.2.14 | Verify permissions in build logs, confirm INTERNET and cleartext traffic |
 | v1.2.0 | In-app updates - check and download new versions from Settings |
 | v1.1.7 | Updated logos and icons |
 | v1.1.5 | Fix version numbers, About screen, README |
