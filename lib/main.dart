@@ -31,11 +31,9 @@ class AtomatorApp extends StatelessWidget {
         theme: atomatorTheme,
         debugShowCheckedModeBanner: false,
         home: Consumer<HostProvider>(
-          builder: (context, hostProvider, _) {
-            final nextScreen = hostProvider.isConfigured
-                ? const HomeScreen()
-                : SetupScreen(storage: storage);
-            return SplashScreen(nextScreen: nextScreen);
+          builder: (context, hp, _) {
+            if (!hp.isConfigured) return SetupScreen(storage: storage);
+            return SplashScreen(nextScreen: const HomeScreen());
           },
         ),
       ),
