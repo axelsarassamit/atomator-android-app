@@ -21,15 +21,15 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 - NetworkManager (for network-related commands)
 - `apt` package manager (used by update/install commands)
 
-**Note:** Some features are desktop-specific:
-- Lock screens, send messages, wallpaper — require a desktop environment (Xfce, GNOME, KDE, etc.)
-- Hostname display — uses Conky (Xfce optimized but works on others)
-- Wake-on-LAN — requires WOL enabled in BIOS
+**Desktop-specific features:**
+- Lock screens, send messages, wallpaper - require a desktop environment
+- Hostname display - uses Conky
+- Wake-on-LAN - requires WOL enabled in BIOS
 
 ## Features
 
 - Direct SSH from your phone - no server needed
-- **In-app updates** - check and install new versions from Settings
+- In-app updates with version rollback
 - 44+ remote commands as tap actions
 - Parallel execution with live results
 - Fleet dashboard with health overview
@@ -55,19 +55,19 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 
 | Version | Changes |
 |---------|---------|
+| v1.2.13 | Fix permissions: store full AndroidManifest, network security config for local SSH |
+| v1.2.12 | Fix install after download, show release notes, auto-install APK |
+| v1.2.11 | Fix same-version showing as update |
+| v1.2.10 | All permissions: local network, WiFi, WOL multicast, storage |
+| v1.2.9 | Add internet and network permissions to AndroidManifest |
+| v1.2.8 | Fix bad import path in update service |
+| v1.2.7 | Robust update system - better download, error handling |
 | v1.2.6 | Version history with rollback - browse and install any previous version |
-| v1.2.5 | Fix app icon - manual copy to mipmap folders as fallback |
-| v1.2.4 | Support all Ubuntu/Debian distros, updated compatibility docs |
-| v1.2.3 | Fix app icon generation, verify icon in build logs |
+| v1.2.5 | Fix app icon - manual copy to mipmap folders |
+| v1.2.4 | Support all Ubuntu/Debian distros, compatibility docs |
+| v1.2.3 | Fix app icon generation with debug output |
 | v1.2.2 | Fix all version references across all files |
 | v1.2.1 | Fix private member access in update service |
-| v1.2.7 | Robust in-app updates - better download location, error handling, version detection |
-| v1.2.8 | Fix bad import path in update service |
-| v1.2.9 | Add internet, network, install, storage permissions to AndroidManifest |
-| v1.2.10 | All permissions: local network, WiFi, WOL multicast, storage, install packages, network security config |
-| v1.2.11 | Fix same-version showing as update - now shows Up to date correctly |
-| v1.2.12 | Fix install after download, show release notes on all releases, auto-install APK |
-| v1.2.13 | Fix permissions: store full AndroidManifest with INTERNET, network security config |
 | v1.2.0 | In-app updates - check and download new versions from Settings |
 | v1.1.7 | Updated logos and icons |
 | v1.1.5 | Fix version numbers, About screen, README |
@@ -82,7 +82,7 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 git clone https://github.com/axelsarassamit/atomator-android-app.git
 cd atomator-android-app
 flutter create --project-name atomator_app .
-git checkout -- lib/ assets/ pubspec.yaml scripts/
+git checkout -- lib/ assets/ pubspec.yaml scripts/ android_manifest/
 flutter pub get
 dart run flutter_launcher_icons
 flutter build apk --release
