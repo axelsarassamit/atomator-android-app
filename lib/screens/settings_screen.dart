@@ -4,6 +4,7 @@ import '../providers/host_provider.dart';
 import '../models/models.dart';
 import 'about_screen.dart';
 import 'update_screen.dart';
+import 'debug_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -22,6 +23,8 @@ class SettingsScreen extends StatelessWidget {
         _sec('APP'),
         ListTile(leading: const Icon(Icons.system_update, color: Colors.green), title: const Text('Check for Updates'), subtitle: const Text('Download latest version'),
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UpdateScreen()))),
+        ListTile(leading: const Icon(Icons.bug_report, color: Colors.orange), title: const Text('Debug / Network Test'), subtitle: const Text('Test connectivity and permissions'),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DebugScreen()))),
         ListTile(leading: const Icon(Icons.info, color: Colors.cyan), title: const Text('About Atomator'), subtitle: const Text('Creator, links, version'),
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()))),
         _sec('DANGER'),
