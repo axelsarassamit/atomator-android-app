@@ -23,4 +23,13 @@ c = c.replace('gradlePluginPortal()', 'google()\n                gradlePluginPor
 with open('android/settings.gradle.kts', 'w') as f:
     f.write(c)
 
+# Manually copy app icon to all mipmap folders as fallback
+icon_src = 'assets/images/app_icon.png'
+if os.path.exists(icon_src):
+    for density in ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi']:
+        dest_dir = f'android/app/src/main/res/mipmap-{density}'
+        if os.path.exists(dest_dir):
+            shutil.copy2(icon_src, os.path.join(dest_dir, 'ic_launcher.png'))
+            print(f'Copied icon to {dest_dir}')
+
 print('Android config patched successfully')
