@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:open_filex/open_filex.dart';
 
 class UpdateService {
-  static const String currentVersion = '1.2.18';
+  static const String currentVersion = '1.2.19';
   static const String _repo = 'axelsarassamit/atomator-android-app';
 
   static Future<Map<String, dynamic>?> checkForUpdate() async {
