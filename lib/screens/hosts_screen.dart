@@ -17,7 +17,19 @@ class HostsScreen extends StatelessWidget {
         body: ListView(children: hp.groups.map((g) {
           final gh = hp.hostsInGroup(g);
           final on = gh.where((h) => h.isOnline).length;
-          return ExpansionTile(title: Text('[' + g + ']  ' + on.toString() + '/' + gh.length.toString() + ' online'), initiallyExpanded: true,
+          return ExpansionTile(
+                  title: Text('[' + g + ']  ' + on.toString() + '/' + gh.length.toString() + ' online'),
+                  trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                    IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red), tooltip: 'Remove group',
+                      onPressed: () { showDialog(context: context, builder: (_) => AlertDialog(
+                        backgroundColor: const Color(0xFF161B22), title: Text('Remove group [' + g + ']?'),
+                        content: Text('This removes all ' + gh.length.toString() + ' hosts in this group.'),
+                        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                            onPressed: () { hp.removeGroup(g); Navigator.pop(context); }, child: const Text('Remove'))])); }),
+                    const Icon(Icons.expand_more),
+                  ]),
+                  initiallyExpanded: true,
             children: gh.map((h) => Dismissible(key: Key(h.ip), direction: DismissDirection.endToStart,
               background: Container(color: Colors.red, alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 16), child: const Icon(Icons.delete, color: Colors.white)),
               onDismissed: (_) => hp.removeHost(h.ip),
