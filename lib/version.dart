@@ -1,1 +1,3 @@
-const String appVersion = "1.1.0";\nconst String appBuild = "2";\nconst String basedOn = "Atomator CLI v.02.09.00";\n
+const String appVersion = '1.1.0';
+const String appBuild = '3';
+const String basedOn = 'Atomator CLI v.02.09.00';
