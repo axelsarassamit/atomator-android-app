@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 class UpdateService {
-  static const String currentVersion = '1.2.11';
+  static const String currentVersion = '1.2.12';
   static const String _repo = 'axelsarassamit/atomator-android-app';
 
   static Future<Map<String, dynamic>?> checkForUpdate() async {
@@ -17,6 +17,7 @@ class UpdateService {
       final body = await response.transform(utf8.decoder).join();
       final data = json.decode(body) as Map<String, dynamic>;
       final tagName = (data['tag_name'] as String).replaceFirst('v', '');
+      if (!_isNewer(tagName, currentVersion)) return null;
       final assets = data['assets'] as List;
       String? apkUrl;
       String? apkName;
@@ -28,11 +29,9 @@ class UpdateService {
           break;
         }
       }
-      if (!_isNewer(tagName, currentVersion)) return null;
       return {
         'version': tagName,
         'current': currentVersion,
-        'isNewer': true,
         'apkUrl': apkUrl,
         'apkName': apkName,
         'body': data['body'] ?? '',
@@ -45,43 +44,41 @@ class UpdateService {
   static Future<String?> downloadApk(String url, String filename, Function(double) onProgress) async {
     try {
       final dir = Directory('/storage/emulated/0/Download');
-      if (!dir.existsSync()) {
-        final altDir = await _getDownloadDir();
-        if (altDir == null) return null;
-        return await _download(url, altDir + '/' + filename, onProgress);
+      final path = (dir.existsSync() ? dir.path : Directory.systemTemp.path) + '/' + filename;
+      final client = HttpClient();
+      final request = await client.getUrl(Uri.parse(url));
+      final response = await request.close();
+      final totalBytes = response.contentLength;
+      int received = 0;
+      final file = File(path);
+      final sink = file.openWrite();
+      await for (final chunk in response) {
+        sink.add(chunk);
+        received += chunk.length;
+        if (totalBytes > 0) onProgress(received / totalBytes);
       }
-      return await _download(url, dir.path + '/' + filename, onProgress);
+      await sink.close();
+      return path;
     } catch (e) {
       return null;
     }
   }
 
-  static Future<String?> _getDownloadDir() async {
+  static Future<bool> installApk(String filePath) async {
     try {
-      final dir = Directory('/storage/emulated/0/Download');
-      if (dir.existsSync()) return dir.path;
-      final tmpDir = Directory.systemTemp;
-      return tmpDir.path;
-    } catch (_) {
-      return null;
+      final result = await Process.run('content', ['open', filePath]);
+      if (result.exitCode != 0) {
+        await Process.run('am', [
+          'start', '-a', 'android.intent.action.VIEW',
+          '-t', 'application/vnd.android.package-archive',
+          '-d', 'file://' + filePath,
+          '--grant-read-uri-permission',
+        ]);
+      }
+      return true;
+    } catch (e) {
+      return false;
     }
-  }
-
-  static Future<String?> _download(String url, String filePath, Function(double) onProgress) async {
-    final client = HttpClient();
-    final request = await client.getUrl(Uri.parse(url));
-    final response = await request.close();
-    final totalBytes = response.contentLength;
-    int receivedBytes = 0;
-    final file = File(filePath);
-    final sink = file.openWrite();
-    await for (final chunk in response) {
-      sink.add(chunk);
-      receivedBytes += chunk.length;
-      if (totalBytes > 0) onProgress(receivedBytes / totalBytes);
-    }
-    await sink.close();
-    return filePath;
   }
 
   static bool _isNewer(String remote, String local) {
