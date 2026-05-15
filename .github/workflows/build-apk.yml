@@ -34,31 +34,39 @@ jobs:
           channel: stable
 
       - name: Backup source
-        run: cp -r lib lib_bak && cp -r assets assets_bak && cp pubspec.yaml pubspec_bak.yaml
+        run: cp -r lib lib_bak && cp -r assets assets_bak && cp pubspec.yaml pubspec_bak.yaml && cp -r scripts scripts_bak
 
-      - name: Create project
-        run: flutter create --project-name atomator_app .
+      - name: Clean and create project
+        run: |
+          rm -rf android ios web linux macos windows test
+          flutter create --project-name atomator_app .
 
       - name: Restore source
-        run: rm -rf lib assets pubspec.yaml && mv lib_bak lib && mv assets_bak assets && mv pubspec_bak.yaml pubspec.yaml
-
-      - name: Fix app name and NDK
         run: |
-          # Change app display name to "Atomator"
-          sed -i 's/android:label="atomator_app"/android:label="Atomator"/' android/app/src/main/AndroidManifest.xml
-          # Fix NDK version
-          sed -i '/android {/a\        ndkVersion = "27.0.12077973"' android/app/build.gradle.kts
+          rm -rf lib assets pubspec.yaml scripts
+          mv lib_bak lib
+          mv assets_bak assets
+          mv pubspec_bak.yaml pubspec.yaml
+          mv scripts_bak scripts
+
+      - name: Patch Android config
+        run: python3 scripts/patch_android.py
 
       - name: Dependencies
         run: flutter pub get
 
       - name: Generate app icon
-        run: dart run flutter_launcher_icons
+        run: |
+          echo "Icon source exists:"
+          ls -la assets/images/app_icon.png
+          dart run flutter_launcher_icons
+          echo "Generated icons:"
+          ls -la android/app/src/main/res/mipmap-*/ic_launcher.png || echo "No icons generated!"
 
-      - name: Build
+      - name: Build APK
         run: flutter build apk
 
-      - name: Rename
+      - name: Rename APK
         run: cp build/app/outputs/flutter-apk/app-release.apk "atomator.${{ steps.version.outputs.version }}.apk"
 
       - name: Upload artifact
