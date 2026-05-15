@@ -26,8 +26,16 @@ class DashboardScreen extends StatelessWidget {
                 _stat('Groups', hp.groups.length.toString(), Icons.folder, Colors.orange),
               ].map((w) => Expanded(child: w)).toList()),
               const SizedBox(height: 16),
-              Card(child: ListTile(leading: const Icon(Icons.refresh, color: Colors.cyan), title: const Text('Check All Hosts'),
-                subtitle: Text('Ping ' + hp.hosts.length.toString() + ' hosts'), onTap: () => hp.checkHostStatus())),
+              Card(child: Column(children: [
+                ListTile(leading: hp.isChecking ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.cyan)) : const Icon(Icons.refresh, color: Colors.cyan),
+                  title: Text(hp.isChecking ? 'Checking hosts...' : 'Check All Hosts'),
+                subtitle: Text('Ping ' + hp.hosts.length.toString() + ' hosts'), onTap: hp.isChecking ? null : () => hp.checkHostStatus()),
+                if (hp.isChecking) Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 12), child: Column(children: [
+                  LinearProgressIndicator(value: hp.checkTotal > 0 ? hp.checkProgress / hp.checkTotal : 0, color: Colors.cyan, backgroundColor: Colors.white12),
+                  const SizedBox(height: 4),
+                  Text(hp.checkStatus, style: const TextStyle(fontSize: 11, color: Colors.white38)),
+                ])),
+              ])),
               const SizedBox(height: 8),
               Card(child: ListTile(leading: const Icon(Icons.analytics, color: Colors.green), title: const Text('Fleet Summary'),
                 subtitle: const Text('RAM, disk, uptime overview'), onTap: () => _fleet(context, hp))),
