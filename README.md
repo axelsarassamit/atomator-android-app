@@ -1,10 +1,30 @@
 # Atomator Mobile
 
-Remote Xubuntu fleet management from your Android phone via direct SSH.
+Remote Linux fleet management from your Android phone via direct SSH.
 
 ## Download
 
 Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-android-app/releases).
+
+## Compatibility
+
+**Managed hosts (targets):**
+- Ubuntu (all versions: 20.04, 22.04, 24.04+)
+- Xubuntu, Kubuntu, Lubuntu, Ubuntu MATE
+- Debian (10, 11, 12+)
+- Linux Mint
+- Any Debian/Ubuntu-based distribution
+
+**Requirements on managed hosts:**
+- SSH server enabled
+- A user account with sudo privileges
+- NetworkManager (for network-related commands)
+- `apt` package manager (used by update/install commands)
+
+**Note:** Some features are desktop-specific:
+- Lock screens, send messages, wallpaper — require a desktop environment (Xfce, GNOME, KDE, etc.)
+- Hostname display — uses Conky (Xfce optimized but works on others)
+- Wake-on-LAN — requires WOL enabled in BIOS
 
 ## Features
 
@@ -35,8 +55,9 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 
 | Version | Changes |
 |---------|---------|
-| v1.2.2 | Fix all version references across all files |
+| v1.2.4 | Support all Ubuntu/Debian distros, updated compatibility docs |
 | v1.2.3 | Fix app icon generation, verify icon in build logs |
+| v1.2.2 | Fix all version references across all files |
 | v1.2.0 | In-app updates - check and download new versions from Settings |
 | v1.1.7 | Updated logos and icons |
 | v1.1.5 | Fix version numbers, About screen, README |
