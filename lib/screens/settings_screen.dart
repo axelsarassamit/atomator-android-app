@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/host_provider.dart';
 import '../models/models.dart';
 import 'about_screen.dart';
+import 'update_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -19,6 +20,8 @@ class SettingsScreen extends StatelessWidget {
           subtitle: Text(hp.onlineCount.toString() + ' online, ' + hp.offlineCount.toString() + ' offline')),
         ListTile(leading: const Icon(Icons.wifi, color: Colors.cyan), title: const Text('Collect MAC Addresses'), subtitle: const Text('For Wake-on-LAN'), onTap: () { hp.collectMacAddresses(); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Collecting MACs...'))); }),
         _sec('APP'),
+        ListTile(leading: const Icon(Icons.system_update, color: Colors.green), title: const Text('Check for Updates'), subtitle: const Text('Download latest version'),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UpdateScreen()))),
         ListTile(leading: const Icon(Icons.info, color: Colors.cyan), title: const Text('About Atomator'), subtitle: const Text('Creator, links, version'),
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()))),
         _sec('DANGER'),
