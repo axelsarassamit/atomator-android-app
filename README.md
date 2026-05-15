@@ -76,6 +76,7 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 | v1.2.19 | Auto-detect network gateway, scan for SSH hosts, no more hardcoded 192.168.1.x |
 | v1.2.20 | Fix ping: 5s timeout, ICMP ping fallback if SSH port closed |
 | v1.2.21 | Ping uses ICMP first (not port 22), improved signing with verification |
+| v1.2.22 | SSH indicator icon per host - green terminal icon if SSH works, red if only ping |
 | v1.2.0 | In-app updates - check and download new versions from Settings |
 | v1.1.7 | Updated logos and icons |
 | v1.1.5 | Fix version numbers, About screen, README |
