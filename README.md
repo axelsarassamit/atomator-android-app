@@ -55,11 +55,12 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 
 | Version | Changes |
 |---------|---------|
+| v1.2.6 | Version history with rollback - browse and install any previous version |
+| v1.2.5 | Fix app icon - manual copy to mipmap folders as fallback |
 | v1.2.4 | Support all Ubuntu/Debian distros, updated compatibility docs |
 | v1.2.3 | Fix app icon generation, verify icon in build logs |
 | v1.2.2 | Fix all version references across all files |
-| v1.2.5 | Fix app icon - manual copy to mipmap folders as fallback |
-| v1.2.6 | Version history with rollback - browse and install any previous version |
+| v1.2.1 | Fix private member access in update service |
 | v1.2.0 | In-app updates - check and download new versions from Settings |
 | v1.1.7 | Updated logos and icons |
 | v1.1.5 | Fix version numbers, About screen, README |
