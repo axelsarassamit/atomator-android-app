@@ -34,7 +34,7 @@ jobs:
           channel: stable
 
       - name: Backup source
-        run: cp -r lib lib_bak && cp -r assets assets_bak && cp pubspec.yaml pubspec_bak.yaml
+        run: cp -r lib lib_bak && cp -r assets assets_bak && cp pubspec.yaml pubspec_bak.yaml && cp -r scripts scripts_bak
 
       - name: Clean and create project
         run: |
@@ -42,26 +42,15 @@ jobs:
           flutter create --project-name atomator_app .
 
       - name: Restore source
-        run: rm -rf lib assets pubspec.yaml && mv lib_bak lib && mv assets_bak assets && mv pubspec_bak.yaml pubspec.yaml
+        run: |
+          rm -rf lib assets pubspec.yaml scripts
+          mv lib_bak lib
+          mv assets_bak assets
+          mv pubspec_bak.yaml pubspec.yaml
+          mv scripts_bak scripts
 
       - name: Patch Android config
-        run: |
-          python3 -c "
-          # Fix app name
-          f = open('android/app/src/main/AndroidManifest.xml'); c = f.read(); f.close()
-          c = c.replace('android:label="atomator_app"', 'android:label="Atomator"')
-          f = open('android/app/src/main/AndroidManifest.xml', 'w'); f.write(c); f.close()
-
-          # Fix NDK
-          f = open('android/app/build.gradle.kts'); c = f.read(); f.close()
-          c = c.replace('android {', 'android {\n        ndkVersion = "27.0.12077973"', 1)
-          f = open('android/app/build.gradle.kts', 'w'); f.write(c); f.close()
-
-          # Add Google Maven mirror
-          f = open('android/settings.gradle.kts'); c = f.read(); f.close()
-          c = c.replace('gradlePluginPortal()', 'google()\n                gradlePluginPortal()')
-          f = open('android/settings.gradle.kts', 'w'); f.write(c); f.close()
-          "
+        run: python3 scripts/patch_android.py
 
       - name: Dependencies
         run: flutter pub get
@@ -69,10 +58,10 @@ jobs:
       - name: Generate app icon
         run: dart run flutter_launcher_icons
 
-      - name: Build
+      - name: Build APK
         run: flutter build apk
 
-      - name: Rename
+      - name: Rename APK
         run: cp build/app/outputs/flutter-apk/app-release.apk "atomator.${{ steps.version.outputs.version }}.apk"
 
       - name: Upload artifact
