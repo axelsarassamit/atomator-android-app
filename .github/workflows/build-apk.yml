@@ -34,7 +34,7 @@ jobs:
           channel: stable
 
       - name: Backup source
-        run: cp -r lib lib_bak && cp -r assets assets_bak && cp pubspec.yaml pubspec_bak.yaml && cp -r scripts scripts_bak
+        run: cp -r lib lib_bak && cp -r assets assets_bak && cp pubspec.yaml pubspec_bak.yaml && cp -r scripts scripts_bak && cp -r android_manifest android_manifest_bak
 
       - name: Clean and create project
         run: |
@@ -48,6 +48,7 @@ jobs:
           mv assets_bak assets
           mv pubspec_bak.yaml pubspec.yaml
           mv scripts_bak scripts
+          mv android_manifest_bak android_manifest
 
       - name: Patch Android config
         run: python3 scripts/patch_android.py
