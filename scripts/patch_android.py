@@ -1,4 +1,6 @@
 import sys
+import os
+import shutil
 
 # Fix app name
 with open('android/app/src/main/AndroidManifest.xml', 'r') as f:
