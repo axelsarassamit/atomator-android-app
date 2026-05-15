@@ -5,6 +5,7 @@ import 'providers/host_provider.dart';
 import 'providers/job_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/setup_screen.dart';
+import 'screens/splash_screen.dart';
 import 'theme.dart';
 
 void main() async {
@@ -31,8 +32,10 @@ class AtomatorApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         home: Consumer<HostProvider>(
           builder: (context, hostProvider, _) {
-            if (!hostProvider.isConfigured) return SetupScreen(storage: storage);
-            return const HomeScreen();
+            final nextScreen = hostProvider.isConfigured
+                ? const HomeScreen()
+                : SetupScreen(storage: storage);
+            return SplashScreen(nextScreen: nextScreen);
           },
         ),
       ),
