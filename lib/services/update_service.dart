@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 class UpdateService {
-  static const String currentVersion = '1.2.10';
+  static const String currentVersion = '1.2.11';
   static const String _repo = 'axelsarassamit/atomator-android-app';
 
   static Future<Map<String, dynamic>?> checkForUpdate() async {
@@ -28,10 +28,11 @@ class UpdateService {
           break;
         }
       }
+      if (!_isNewer(tagName, currentVersion)) return null;
       return {
         'version': tagName,
         'current': currentVersion,
-        'isNewer': _isNewer(tagName, currentVersion),
+        'isNewer': true,
         'apkUrl': apkUrl,
         'apkName': apkName,
         'body': data['body'] ?? '',
