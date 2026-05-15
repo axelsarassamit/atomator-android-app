@@ -31,7 +31,7 @@ class UpdateService {
         }
         return {
           'version': tagName,
-          'current': _currentVersion,
+          'current': currentVersion,
           'apkUrl': apkUrl,
           'apkName': apkName,
           'body': data['body'] ?? '',
