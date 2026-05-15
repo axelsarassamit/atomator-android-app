@@ -19,10 +19,13 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('⚡ Atomator', style: Theme.of(context).textTheme.headlineLarge),
-                const SizedBox(height: 4),
-                Text('Remote Xubuntu Management', style: Theme.of(context).textTheme.bodySmall),
-                const SizedBox(height: 24),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Image.asset('assets/images/atomator_banner.png', height: 80, fit: BoxFit.contain),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Row(children: [
                   _stat(context, 'Total', hp.hosts.length.toString(), Icons.computer, Colors.cyan),
                   _stat(context, 'Online', hp.onlineCount.toString(), Icons.wifi, Colors.green),
@@ -33,7 +36,7 @@ class DashboardScreen extends StatelessWidget {
                 Card(child: ListTile(
                   leading: const Icon(Icons.refresh, color: Colors.cyan),
                   title: const Text('Check All Hosts'),
-                  subtitle: Text('Ping ${hp.hosts.length} hosts'),
+                  subtitle: Text('Ping ' + hp.hosts.length.toString() + ' hosts'),
                   onTap: () => hp.checkHostStatus(),
                 )),
                 const SizedBox(height: 8),
@@ -55,7 +58,7 @@ class DashboardScreen extends StatelessWidget {
                         dense: true,
                         leading: Icon(j.failCount > 0 ? Icons.warning : Icons.check_circle, color: j.failCount > 0 ? Colors.orange : Colors.green, size: 20),
                         title: Text(j.name, style: const TextStyle(fontSize: 13)),
-                        subtitle: Text('OK: ${j.okCount} | Failed: ${j.failCount}', style: const TextStyle(fontSize: 11, color: Colors.white38)),
+                        subtitle: Text('OK: ' + j.okCount.toString() + ' | Failed: ' + j.failCount.toString(), style: const TextStyle(fontSize: 11, color: Colors.white38)),
                       ))),
                     ],
                   );
@@ -89,12 +92,14 @@ class DashboardScreen extends StatelessWidget {
           if (!snap.hasData) return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
           final d = snap.data!;
           return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Online: ${d["online"]}/${hp.hosts.length}', style: const TextStyle(color: Colors.green)),
-            Text('Total RAM: ${d["ramGB"]} GB'), Text('Avg: ${d["avgGB"]} GB/host'),
-            if (d["crit"] > 0) Text('Disk Critical: ${d["crit"]}', style: const TextStyle(color: Colors.red)),
-            if (d["warn"] > 0) Text('Disk Warning: ${d["warn"]}', style: const TextStyle(color: Colors.orange)),
+            Text('Online: ' + d["online"].toString() + '/' + hp.hosts.length.toString(), style: const TextStyle(color: Colors.green)),
+            Text('Total RAM: ' + d["ramGB"].toString() + ' GB'),
+            Text('Avg: ' + d["avgGB"].toString() + ' GB/host'),
+            if (d["crit"] > 0) Text('Disk Critical: ' + d["crit"].toString(), style: const TextStyle(color: Colors.red)),
+            if (d["warn"] > 0) Text('Disk Warning: ' + d["warn"].toString(), style: const TextStyle(color: Colors.orange)),
             if (d["crit"] == 0 && d["warn"] == 0) const Text('Disk: All healthy', style: TextStyle(color: Colors.green)),
-            Text('Longest uptime: ${d["maxD"]} days'), Text('Shortest: ${d["minD"]} days'),
+            Text('Longest uptime: ' + d["maxD"].toString() + ' days'),
+            Text('Shortest: ' + d["minD"].toString() + ' days'),
           ]);
         },
       ),
