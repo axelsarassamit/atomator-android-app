@@ -16,7 +16,7 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 24),
             const Text('Atomator Mobile', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.cyan)),
             const SizedBox(height: 4),
-            const Text('v1.2.24', style: TextStyle(fontSize: 14, color: Colors.white38)),
+            const Text('v1.2.25', style: TextStyle(fontSize: 14, color: Colors.white38)),
             const SizedBox(height: 24),
             const Text('Remote Linux fleet management from your phone.\nDirect SSH - no server needed.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white60)),
             const SizedBox(height: 32),
