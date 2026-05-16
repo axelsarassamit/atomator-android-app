@@ -8,40 +8,31 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 
 ## Compatibility
 
-**Managed hosts (targets):**
-- Ubuntu (all versions: 20.04, 22.04, 24.04+)
-- Xubuntu, Kubuntu, Lubuntu, Ubuntu MATE
-- Debian (10, 11, 12+)
-- Linux Mint
-- Any Debian/Ubuntu-based distribution
+**Managed hosts:**
+- Ubuntu, Xubuntu, Kubuntu, Lubuntu, Debian, Linux Mint
+- Any device with SSH: switches, routers, firewalls, NAS, Raspberry Pi
 
-**Requirements on managed hosts:**
-- SSH server enabled
-- A user account with sudo privileges
-- NetworkManager (for network-related commands)
-- `apt` package manager (used by update/install commands)
-
-**Desktop-specific features:**
-- Lock screens, send messages, wallpaper - require a desktop environment
-- Hostname display - uses Conky
-- Wake-on-LAN - requires WOL enabled in BIOS
+**Requirements:** SSH server + sudo user + apt (for update/install commands)
 
 ## Features
 
-- Direct SSH from your phone - no server needed
+- Direct SSH from phone - no server needed
+- Built-in SSH terminal for interactive commands
 - In-app updates with version rollback
 - 44+ remote commands as tap actions
-- Parallel execution with live results
-- Fleet dashboard with health overview
-- Host groups with custom names
+- Progress bars on all operations
+- Smart host resolution (hostname, DNS, MAC vendor)
 - Per-host custom SSH credentials
-- Wake-on-LAN - all hosts or single host
-- MAC address collection
+- Host groups with custom names
+- Wake-on-LAN (all or single host)
 - Send popup messages to all desktops
 - Lock all screens instantly
-- Edit and remove individual hosts or entire groups
-- Encrypted credential storage on device
-- Splash screen and custom app icon
+- Fleet dashboard with health overview
+- Debug / network test screen
+- User manual built into the app
+- Bug report / feature request screen
+- Accessible status indicators (icons, not just colors)
+- Encrypted credential storage
 - Dark theme UI
 
 ## Created by
@@ -55,49 +46,30 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 
 | Version | Changes |
 |---------|---------|
-| v1.2.13 | Fix permissions: store full AndroidManifest, network security config for local SSH |
-| v1.2.12 | Fix install after download, show release notes, auto-install APK |
-| v1.2.11 | Fix same-version showing as update |
-| v1.2.10 | All permissions: local network, WiFi, WOL multicast, storage |
-| v1.2.9 | Add internet and network permissions to AndroidManifest |
-| v1.2.8 | Fix bad import path in update service |
-| v1.2.7 | Robust update system - better download, error handling |
-| v1.2.6 | Version history with rollback - browse and install any previous version |
-| v1.2.5 | Fix app icon - manual copy to mipmap folders |
-| v1.2.4 | Support all Ubuntu/Debian distros, compatibility docs |
-| v1.2.3 | Fix app icon generation with debug output |
-| v1.2.2 | Fix all version references across all files |
-| v1.2.1 | Fix private member access in update service |
-| v1.2.14 | Verify permissions in build logs, confirm INTERNET and cleartext traffic |
-| v1.2.15 | Add debug screen: test internet, local network, SSH, ping, file access |
-| v1.2.16 | Fix APK install using open_filex, add Open Downloads folder button |
-| v1.2.17 | Persistent APK signing with keystore - updates install without uninstalling |
-| v1.2.18 | Progress bar on Check All Hosts, spinner on Hosts refresh, sequential checking with live updates |
-| v1.2.19 | Auto-detect network gateway, scan for SSH hosts, no more hardcoded 192.168.1.x |
-| v1.2.20 | Fix ping: 5s timeout, ICMP ping fallback if SSH port closed |
-| v1.2.21 | Ping uses ICMP first (not port 22), improved signing with verification |
-| v1.2.22 | SSH indicator icon per host - green terminal icon if SSH works, red if only ping |
-| v1.2.23 | Bigger status indicators (16px circles, 18px SSH icon) |
-| v1.2.24 | Dashboard host list with SSH indicators, accessible status badges with check/X icons |
-| v1.2.25 | Dashboard: SSH available counter instead of host list, 5 stat cards |
-| v1.3.0 | NEW: Built-in SSH terminal - select a host and type commands interactively |
-| v1.3.1 | Fix All Versions download - popup dialog with progress bar and install button |
-| v1.3.2 | Fix navigation bar - shorter labels that fit on screen |
-| v1.3.3 | Fix stat cards - numbers and labels auto-scale to fit, no more wrapping |
-| v1.3.4 | Force release signing - always uses keystore, never debug key |
-| v1.3.5 | User manual - in-app guide and MANUAL.md in repo |
-| v1.3.6 | Report a Problem - bug reports and feature requests with device info |
-| v1.3.7 | Smart host resolution: hostname via SSH, reverse DNS, MAC vendor lookup with 50+ vendors |
-| v1.3.8 | Progress bar on all actions and tools - shows X/total with OK/FAIL live count |
-| v1.3.9 | Actions and tools only run on hosts with SSH available and credentials set |
-| v1.3.10 | Fix build crash: hosts variable scope in tools screen |
-| v1.2.0 | In-app updates - check and download new versions from Settings |
-| v1.1.7 | Updated logos and icons |
-| v1.1.5 | Fix version numbers, About screen, README |
-| v1.1.4 | Restore custom creds, remove group, fix MAC collection |
-| v1.1.3 | Fix Dart $ escape in MAC command |
-| v1.1.0 | Per-host credentials, WOL, About screen, edit host |
-| v1.0.0 | Initial release - all 44 scripts, dashboard, host groups |
+| v1.3.10 | Fix build crash in WOL function |
+| v1.3.9 | Actions/tools only run on SSH-ready hosts |
+| v1.3.8 | Progress bars on all actions and tools |
+| v1.3.7 | Smart host resolution: hostname, DNS, MAC vendor |
+| v1.3.6 | Report a Problem screen |
+| v1.3.5 | In-app user manual |
+| v1.3.4 | Force release signing for seamless updates |
+| v1.3.3 | Fix stat cards auto-scaling |
+| v1.3.2 | Shorter navigation labels |
+| v1.3.1 | Fix All Versions download |
+| v1.3.0 | Built-in SSH terminal |
+| v1.2.25 | SSH counter on dashboard |
+| v1.2.24 | Accessible status badges with icons |
+| v1.2.22 | SSH indicator per host |
+| v1.2.20 | Ping uses ICMP first |
+| v1.2.19 | Network auto-detection |
+| v1.2.17 | Persistent APK signing |
+| v1.2.15 | Debug / network test screen |
+| v1.2.13 | AndroidManifest overhaul |
+| v1.2.10 | Full network permissions |
+| v1.2.6 | Version rollback |
+| v1.2.0 | In-app updates |
+| v1.1.0 | Per-host credentials, WOL, About screen |
+| v1.0.0 | Initial release |
 
 ## Build from Source
 
@@ -111,6 +83,7 @@ dart run flutter_launcher_icons
 flutter build apk --release
 ```
 
-## Based on
+## Documentation
 
-[Atomator CLI](https://github.com/axelsarassamit/atomator) v.02.09.00
+- [User Manual](MANUAL.md)
+- [CLI Documentation](https://github.com/axelsarassamit/atomator)
