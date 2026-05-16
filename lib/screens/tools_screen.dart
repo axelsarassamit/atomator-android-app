@@ -65,7 +65,7 @@ class ToolsScreen extends StatelessWidget {
     final creds = hp.credsForHost(onlineHost);
     final jp = context.read<JobProvider>();
     final job = jp.startJob('Wake-on-LAN (all)');
-    Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: job, totalHosts: hosts.length)));
+    Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: job, totalHosts: hostsWithMac.length)));
     () async {
       for (final h in hostsWithMac) {
         final r = await SSHService.runCommand(onlineHost.ip, creds, 'wakeonlan ' + h.mac! + ' 2>/dev/null || etherwake ' + h.mac! + ' 2>/dev/null; echo "WOL sent to ' + h.mac! + '"');
