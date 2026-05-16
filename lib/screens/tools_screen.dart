@@ -17,7 +17,7 @@ class ToolsScreen extends StatelessWidget {
     final hosts = hp.hosts.where((h) => h.isOnline).toList();
     if (hosts.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No online hosts.'))); return; }
     final job = jp.startJob(name);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: job)));
+    Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: job, totalHosts: hosts.length)));
     () async {
       for (final h in hosts) {
         final creds = hp.credsForHost(h);
@@ -64,7 +64,7 @@ class ToolsScreen extends StatelessWidget {
     final creds = hp.credsForHost(onlineHost);
     final jp = context.read<JobProvider>();
     final job = jp.startJob('Wake-on-LAN (all)');
-    Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: job)));
+    Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: job, totalHosts: hosts.length)));
     () async {
       for (final h in hostsWithMac) {
         final r = await SSHService.runCommand(onlineHost.ip, creds, 'wakeonlan ' + h.mac! + ' 2>/dev/null || etherwake ' + h.mac! + ' 2>/dev/null; echo "WOL sent to ' + h.mac! + '"');
