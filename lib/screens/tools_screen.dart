@@ -16,8 +16,9 @@ class ToolsScreen extends StatelessWidget {
     if (hp.credentials == null) return;
     final hosts = hp.hosts.where((h) => h.sshOpen).toList();
     if (hosts.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No hosts with SSH available. Run Check All Hosts first.'))); return; }
+    final total = hosts.length;
     final job = jp.startJob(name);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: job, totalHosts: hosts.length)));
+    Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: job, totalHosts: total)));
     () async {
       for (final h in hosts) {
         final creds = hp.credsForHost(h);
