@@ -1,8 +1,8 @@
 class Commands {
-  static String updateAll() => 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -o Dpkg::Options::=--force-confold && apt-get autoremove -y && apt-get autoclean -y && echo UPDATE COMPLETE';
-  static String updatePurgeKernels() => 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -o Dpkg::Options::=--force-confold && apt-get autoremove -y --purge && apt-get autoclean -y && echo UPDATE COMPLETE';
+  static String updateAll() => 'dpkg --configure -a 2>/dev/null; DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -o Dpkg::Options::=--force-confold && apt-get autoremove -y && apt-get autoclean -y && echo UPDATE COMPLETE';
+  static String updatePurgeKernels() => 'dpkg --configure -a 2>/dev/null; DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -o Dpkg::Options::=--force-confold && apt-get autoremove -y --purge && apt-get autoclean -y && echo UPDATE COMPLETE';
   static String disableAutoUpdates() => 'systemctl stop unattended-upgrades 2>/dev/null; systemctl disable unattended-upgrades 2>/dev/null; systemctl stop apt-daily.timer 2>/dev/null; systemctl disable apt-daily.timer 2>/dev/null; echo DONE';
-  static String cleanup() => 'apt-get clean -y; apt-get autoclean -y; apt-get autoremove -y; journalctl --vacuum-time=7d 2>/dev/null; find /tmp -type f -atime +7 -delete 2>/dev/null; echo CLEANUP DONE';
+  static String cleanup() => 'dpkg --configure -a 2>/dev/null; apt-get clean -y; apt-get autoclean -y; apt-get autoremove -y; journalctl --vacuum-time=7d 2>/dev/null; find /tmp -type f -atime +7 -delete 2>/dev/null; echo CLEANUP DONE';
   static String reboot() => 'reboot';
   static String shutdown() => 'shutdown -h now';
   static String hostname() => 'hostname';
@@ -16,7 +16,7 @@ class Commands {
   static String disableWifi() => 'nmcli radio wifi off 2>/dev/null && echo WIFI DISABLED || echo FAILED';
   static String lockScreen() => 'export DISPLAY=:0; xflock4 2>/dev/null || loginctl lock-sessions 2>/dev/null || xdg-screensaver lock 2>/dev/null; echo LOCKED';
   static String sendMessage(String title, String body) => 'for user in \$(who | cut -d" " -f1 | sort -u); do uid=\$(id -u \$user 2>/dev/null); if [ -n "\$uid" ]; then sudo -u \$user DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/\$uid/bus notify-send "' + title + '" "' + body + '" --urgency=critical 2>/dev/null; fi; done; echo MESSAGE SENT';
-  static String installPackage(String p) => 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && apt-get install -y ' + p + ' && echo INSTALLED || echo FAILED';
+  static String installPackage(String p) => 'dpkg --configure -a 2>/dev/null; DEBIAN_FRONTEND=noninteractive apt-get update -qq && apt-get install -y ' + p + ' && echo INSTALLED || echo FAILED';
   static String installFirefox() => installPackage('firefox-esr');
   static String installChrome() => 'wget -q -O /tmp/chrome.deb "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb" && dpkg -i /tmp/chrome.deb 2>/dev/null || apt-get install -f -y && rm -f /tmp/chrome.deb && echo INSTALLED || echo FAILED';
   static String removeFirefox() => 'apt-get remove -y firefox-esr 2>/dev/null; apt-get autoremove -y; echo REMOVED';
@@ -25,5 +25,6 @@ class Commands {
   static String deleteSSHKeys() => 'rm -f ~/.ssh/known_hosts; echo DONE';
   static String changePassword(String user, String pass) => 'printf "%s:%s" "' + user + '" "' + pass + '" | chpasswd && echo PASSWORD CHANGED || echo FAILED';
   static String speedTest() => 'if ! which speedtest-cli >/dev/null 2>&1; then echo MISSING: speedtest-cli not installed; else speedtest-cli --simple; fi';
+  static String fixDpkg() => 'dpkg --configure -a && apt-get install -f -y && echo DPKG FIXED';
   static String fleetSummary() => 'RAM=\$(free -m | grep Mem | tr -s " " | cut -d" " -f2); DISK=\$(df / | tail -1 | tr -s " " | cut -d" " -f5 | tr -d "%"); UPT=\$(cat /proc/uptime | cut -d. -f1); echo "\$RAM|\$DISK|\$UPT"';
 }
