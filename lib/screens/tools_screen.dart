@@ -151,6 +151,6 @@ class ToolsScreen extends StatelessWidget {
       content: Column(mainAxisSize: MainAxisSize.min, children: [
         TextField(controller: t, decoration: const InputDecoration(labelText: 'Title', border: OutlineInputBorder())), const SizedBox(height: 12),
         TextField(controller: b, decoration: const InputDecoration(labelText: 'Message', border: OutlineInputBorder()), maxLines: 3)]),
-      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')), ElevatedButton(onPressed: () { Navigator.pop(ctx); _run(ctx, 'Send Message', Commands.sendMessage(t.text, b.text)); }, child: const Text('Send'))]));
+      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')), ElevatedButton(onPressed: () { Navigator.pop(ctx); _run(ctx, 'Send Message', Commands.sendMessage(t.text, b.text), sudo: false); }, child: const Text('Send'))]));
   }
 }
