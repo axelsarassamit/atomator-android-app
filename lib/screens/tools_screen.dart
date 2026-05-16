@@ -12,13 +12,36 @@ class ToolsScreen extends StatelessWidget {
   const ToolsScreen({super.key});
 
   void _run(BuildContext context, String name, String cmd, {bool sudo = true}) {
-    final hp = context.read<HostProvider>(); final jp = context.read<JobProvider>();
-    if (hp.credentials == null) return;
-    final hosts = hp.hosts.where((h) => h.sshOpen).toList();
-    if (hosts.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No hosts with SSH available. Run Check All Hosts first.'))); return; }
-    final total = hosts.length;
+    final hp = context.read<HostProvider>();
+    if (hp.credentials == null) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Set SSH credentials in Config first.'))); return; }
+    final allSsh = hp.hosts.where((h) => h.sshOpen).toList();
+    if (allSsh.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No hosts with SSH available.'))); return; }
+    final groups = hp.groups;
+    if (groups.length <= 1) {
+      _execute(context, name, cmd, allSsh, sudo: sudo);
+      return;
+    }
+    showDialog(context: context, builder: (_) => AlertDialog(
+      backgroundColor: const Color(0xFF161B22),
+      title: Text('Run: ' + name, style: const TextStyle(fontSize: 14)),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        ListTile(leading: const Icon(Icons.select_all, color: Colors.cyan), title: Text('All hosts (' + allSsh.length.toString() + ')'),
+          onTap: () { Navigator.pop(context); _execute(context, name, cmd, allSsh, sudo: sudo); }),
+        const Divider(color: Colors.white12),
+        ...groups.map((g) {
+          final gh = hp.hostsInGroup(g).where((h) => h.sshOpen).toList();
+          return ListTile(leading: const Icon(Icons.folder, color: Colors.orange, size: 20), title: Text('[' + g + '] (' + gh.length.toString() + ')'),
+            enabled: gh.isNotEmpty, onTap: gh.isEmpty ? null : () { Navigator.pop(context); _execute(context, name + ' [' + g + ']', cmd, gh, sudo: sudo); });
+        }),
+      ]),
+    ));
+  }
+
+  void _execute(BuildContext context, String name, String cmd, List<Host> hosts, {bool sudo = true}) {
+    final hp = context.read<HostProvider>();
+    final jp = context.read<JobProvider>();
     final job = jp.startJob(name);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: job, totalHosts: total)));
+    Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: job, totalHosts: hosts.length)));
     () async {
       for (final h in hosts) {
         final creds = hp.credsForHost(h);
