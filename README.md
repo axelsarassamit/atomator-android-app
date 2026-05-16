@@ -86,6 +86,7 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 | v1.3.3 | Fix stat cards - numbers and labels auto-scale to fit, no more wrapping |
 | v1.3.4 | Force release signing - always uses keystore, never debug key |
 | v1.3.5 | User manual - in-app guide and MANUAL.md in repo |
+| v1.3.6 | Report a Problem - bug reports and feature requests with device info |
 | v1.2.0 | In-app updates - check and download new versions from Settings |
 | v1.1.7 | Updated logos and icons |
 | v1.1.5 | Fix version numbers, About screen, README |
