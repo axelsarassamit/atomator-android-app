@@ -17,7 +17,7 @@ class ActionsScreen extends StatelessWidget {
     final hosts = hp.hosts.where((h) => h.isOnline).toList();
     if (hosts.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No online hosts.'))); return; }
     final job = jp.startJob(name);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: job)));
+    Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: job, totalHosts: hosts.length)));
     () async { await for (final r in SSHService.runOnAll(hosts, creds, cmd, sudo: sudo, maxParallel: par)) { jp.addResult(job, r); } jp.finishJob(job); }();
   }
 
