@@ -13,7 +13,7 @@ class ActionsScreen extends StatelessWidget {
 
   void _run(BuildContext context, String name, String cmd, {bool sudo = true, int par = 5}) {
     final hp = context.read<HostProvider>(); final jp = context.read<JobProvider>();
-    final creds = hp.credentials; if (creds == null) return;
+    final creds = hp.credentials; if (creds == null) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Set SSH credentials in Config first.'))); return; }
     final hosts = hp.hosts.where((h) => h.sshOpen).toList();
     if (hosts.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No hosts with SSH available. Run Check All Hosts first.'))); return; }
     final job = jp.startJob(name);
