@@ -77,6 +77,7 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 | v1.2.20 | Fix ping: 5s timeout, ICMP ping fallback if SSH port closed |
 | v1.2.21 | Ping uses ICMP first (not port 22), improved signing with verification |
 | v1.2.22 | SSH indicator icon per host - green terminal icon if SSH works, red if only ping |
+| v1.2.23 | Bigger status indicators (16px circles, 18px SSH icon) |
 | v1.2.0 | In-app updates - check and download new versions from Settings |
 | v1.1.7 | Updated logos and icons |
 | v1.1.5 | Fix version numbers, About screen, README |
