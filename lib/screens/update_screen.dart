@@ -82,6 +82,19 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
     }
   }
 
+
+  void _showDownloadDialog(BuildContext context, String url, String filename, String version) {
+    if (url.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No APK available for this version')));
+      return;
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _DownloadDialog(url: url, filename: filename, version: version),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -159,7 +172,7 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
               SizedBox(width: double.infinity, child: ElevatedButton.icon(
                 icon: Icon(isCurrent ? Icons.refresh : Icons.download),
                 label: Text(isCurrent ? 'Reinstall v' + r['version'] : 'Download & Install v' + r['version']),
-                onPressed: () => _downloadAndInstall(r['apkUrl'], r['apkName'] ?? 'atomator.apk'),
+                onPressed: () => _showDownloadDialog(context, r['apkUrl'] ?? '', r['apkName'] ?? 'atomator.apk', r['version']),
               ))
             else const Text('No APK for this version', style: TextStyle(color: Colors.white24, fontSize: 12)),
           ]))],
@@ -194,3 +207,76 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
     ]);
   }
 }
+
+
+class _DownloadDialog extends StatefulWidget {
+  final String url;
+  final String filename;
+  final String version;
+  const _DownloadDialog({required this.url, required this.filename, required this.version});
+  @override
+  State<_DownloadDialog> createState() => _DownloadDialogState();
+}
+
+class _DownloadDialogState extends State<_DownloadDialog> {
+  double _progress = 0;
+  bool _downloading = true;
+  String? _path;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _startDownload();
+  }
+
+  Future<void> _startDownload() async {
+    final path = await UpdateService.downloadApk(widget.url, widget.filename, (p) => setState(() => _progress = p));
+    if (path != null) {
+      setState(() { _path = path; _downloading = false; });
+      final ok = await UpdateService.installApk(path);
+      if (!ok) setState(() => _error = 'Auto-install failed. File saved to Downloads folder.');
+    } else {
+      setState(() { _error = 'Download failed'; _downloading = false; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFF161B22),
+      title: Text('v' + widget.version, style: const TextStyle(fontSize: 16)),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        if (_downloading) ...[
+          LinearProgressIndicator(value: _progress, color: Colors.cyan),
+          const SizedBox(height: 12),
+          Text((_progress * 100).toInt().toString() + '% downloading...', style: const TextStyle(color: Colors.white38)),
+        ] else if (_path != null) ...[
+          const Icon(Icons.check_circle, color: Colors.green, size: 40),
+          const SizedBox(height: 12),
+          const Text('Downloaded!', style: TextStyle(color: Colors.green)),
+          if (_error != null) ...[
+            const SizedBox(height: 8),
+            Text(_error!, style: const TextStyle(color: Colors.orange, fontSize: 12)),
+          ],
+        ] else if (_error != null) ...[
+          const Icon(Icons.error, color: Colors.red, size: 40),
+          const SizedBox(height: 12),
+          Text(_error!, style: const TextStyle(color: Colors.red)),
+        ],
+      ]),
+      actions: [
+        if (!_downloading) ...[
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+          if (_path != null) ...[
+            ElevatedButton.icon(icon: const Icon(Icons.install_mobile), label: const Text('Install'),
+              onPressed: () => UpdateService.installApk(_path!)),
+            OutlinedButton.icon(icon: const Icon(Icons.folder_open), label: const Text('Downloads'),
+              onPressed: () => UpdateService.openDownloads()),
+          ],
+        ],
+      ],
+    );
+  }
+}
+
