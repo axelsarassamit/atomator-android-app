@@ -12,13 +12,52 @@ class ActionsScreen extends StatelessWidget {
   const ActionsScreen({super.key});
 
   void _run(BuildContext context, String name, String cmd, {bool sudo = true, int par = 5}) {
-    final hp = context.read<HostProvider>(); final jp = context.read<JobProvider>();
-    final creds = hp.credentials; if (creds == null) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Set SSH credentials in Config first.'))); return; }
-    final hosts = hp.hosts.where((h) => h.sshOpen).toList();
-    if (hosts.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No hosts with SSH available. Run Check All Hosts first.'))); return; }
+    final hp = context.read<HostProvider>();
+    final creds = hp.credentials;
+    if (creds == null) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Set SSH credentials in Config first.'))); return; }
+    final allSsh = hp.hosts.where((h) => h.sshOpen).toList();
+    if (allSsh.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No hosts with SSH available. Run Check All Hosts first.'))); return; }
+    final groups = hp.groups;
+    if (groups.length <= 1) {
+      _execute(context, name, cmd, allSsh, sudo: sudo, par: par);
+      return;
+    }
+    showDialog(context: context, builder: (_) => AlertDialog(
+      backgroundColor: const Color(0xFF161B22),
+      title: Text('Run: ' + name, style: const TextStyle(fontSize: 14)),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        ListTile(
+          leading: const Icon(Icons.select_all, color: Colors.cyan),
+          title: Text('All hosts (' + allSsh.length.toString() + ')', style: const TextStyle(fontSize: 14)),
+          onTap: () { Navigator.pop(context); _execute(context, name, cmd, allSsh, sudo: sudo, par: par); },
+        ),
+        const Divider(color: Colors.white12),
+        ...groups.map((g) {
+          final groupHosts = hp.hostsInGroup(g).where((h) => h.sshOpen).toList();
+          return ListTile(
+            leading: const Icon(Icons.folder, color: Colors.orange, size: 20),
+            title: Text('[' + g + '] (' + groupHosts.length.toString() + ')', style: const TextStyle(fontSize: 14)),
+            enabled: groupHosts.isNotEmpty,
+            onTap: groupHosts.isEmpty ? null : () { Navigator.pop(context); _execute(context, name + ' [' + g + ']', cmd, groupHosts, sudo: sudo, par: par); },
+          );
+        }),
+      ]),
+    ));
+  }
+
+  void _execute(BuildContext context, String name, String cmd, List<Host> hosts, {bool sudo = true, int par = 5}) {
+    final hp = context.read<HostProvider>();
+    final jp = context.read<JobProvider>();
     final job = jp.startJob(name);
     Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: job, totalHosts: hosts.length)));
-    () async { await for (final r in SSHService.runOnAll(hosts, creds, cmd, sudo: sudo, maxParallel: par)) { jp.addResult(job, r); } jp.finishJob(job); }();
+    () async {
+      for (final h in hosts) {
+        final creds = hp.credsForHost(h);
+        final r = await SSHService.runCommand(h.ip, creds, cmd, sudo: sudo);
+        jp.addResult(job, r);
+      }
+      jp.finishJob(job);
+    }();
   }
 
   void _speedTestDialog(BuildContext ctx) {
