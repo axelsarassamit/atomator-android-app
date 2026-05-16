@@ -25,21 +25,55 @@ class ActionCard extends StatelessWidget {
 
 class ResultsList extends StatelessWidget {
   final JobResult job;
-  const ResultsList({super.key, required this.job});
+  final int totalHosts;
+  const ResultsList({super.key, required this.job, this.totalHosts = 0});
   @override
-  Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Padding(padding: const EdgeInsets.all(16), child: Row(children: [
-      if (job.isRunning) ...[const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)), const SizedBox(width: 8), Text('Running... ${job.results.length}')]
-      else ...[const Icon(Icons.check_circle, color: Colors.green, size: 20), const SizedBox(width: 8), Text('OK: ${job.okCount}  Failed: ${job.failCount}  Total: ${job.total}')],
-    ])),
-    Expanded(child: ListView.builder(itemCount: job.results.length, itemBuilder: (context, i) {
-      final r = job.results[i];
-      return ListTile(dense: true, leading: Icon(r.success ? Icons.check_circle : Icons.error, color: r.success ? Colors.green : Colors.red, size: 18),
-        title: Text(r.host, style: const TextStyle(fontFamily: 'RobotoMono', fontSize: 13)),
-        subtitle: Text(r.output.length > 80 ? r.output.substring(0, 80) : r.output, style: const TextStyle(fontSize: 11, color: Colors.white38)),
-        trailing: Text('${r.duration.inMilliseconds}ms', style: const TextStyle(fontSize: 11, color: Colors.white24)));
-    })),
-  ]);
+  Widget build(BuildContext context) {
+    final total = totalHosts > 0 ? totalHosts : (job.isRunning ? job.results.length + 1 : job.total);
+    final progress = total > 0 ? job.results.length / total : 0.0;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      if (job.isRunning) ...[
+        Padding(padding: const EdgeInsets.fromLTRB(16, 16, 16, 0), child: Row(children: [
+          const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.cyan)),
+          const SizedBox(width: 12),
+          Text('Running ' + job.results.length.toString() + (totalHosts > 0 ? '/' + totalHosts.toString() : '') + '...', style: const TextStyle(fontSize: 14)),
+          const Spacer(),
+          Text(job.okCount.toString() + ' OK', style: const TextStyle(fontSize: 12, color: Colors.green)),
+          if (job.failCount > 0) ...[const SizedBox(width: 8), Text(job.failCount.toString() + ' FAIL', style: const TextStyle(fontSize: 12, color: Colors.red))],
+        ])),
+        Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 8), child: ClipRRect(borderRadius: BorderRadius.circular(4), child: LinearProgressIndicator(value: progress, minHeight: 6, color: Colors.cyan, backgroundColor: Colors.white12))),
+      ] else ...[
+        Padding(padding: const EdgeInsets.all(16), child: Row(children: [
+          Icon(job.failCount > 0 ? Icons.warning : Icons.check_circle, color: job.failCount > 0 ? Colors.orange : Colors.green, size: 24),
+          const SizedBox(width: 12),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(job.failCount > 0 ? 'Completed with errors' : 'Completed successfully', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: job.failCount > 0 ? Colors.orange : Colors.green)),
+            Text('OK: ' + job.okCount.toString() + '  |  Failed: ' + job.failCount.toString() + '  |  Total: ' + job.total.toString(), style: const TextStyle(fontSize: 12, color: Colors.white38)),
+          ]),
+        ])),
+      ],
+      const Divider(height: 1, color: Colors.white12),
+      Expanded(child: ListView.builder(itemCount: job.results.length, itemBuilder: (context, i) {
+        final r = job.results[i];
+        return ListTile(dense: true,
+          leading: Icon(r.success ? Icons.check_circle : Icons.error, color: r.success ? Colors.green : Colors.red, size: 18),
+          title: Text(r.host, style: const TextStyle(fontFamily: 'RobotoMono', fontSize: 13)),
+          subtitle: Text(r.output.length > 100 ? r.output.substring(0, 100) + '...' : r.output, style: const TextStyle(fontSize: 11, color: Colors.white38)),
+          trailing: Text(r.duration.inMilliseconds.toString() + 'ms', style: const TextStyle(fontSize: 11, color: Colors.white24)),
+          onTap: r.output.length > 100 ? () => _showFull(context, r) : null,
+        );
+      })),
+    ]);
+  }
+
+  static void _showFull(BuildContext context, SSHResult r) {
+    showDialog(context: context, builder: (_) => AlertDialog(
+      backgroundColor: const Color(0xFF161B22),
+      title: Text(r.host, style: const TextStyle(fontFamily: 'RobotoMono', fontSize: 14)),
+      content: SingleChildScrollView(child: SelectableText(r.output, style: const TextStyle(fontFamily: 'monospace', fontSize: 12, color: Colors.white70))),
+      actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
+    ));
+  }
 }
 
 class SectionHeader extends StatelessWidget {
