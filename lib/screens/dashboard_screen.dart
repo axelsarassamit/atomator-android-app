@@ -22,6 +22,7 @@ class DashboardScreen extends StatelessWidget {
               Row(children: [
                 _stat('Total', hp.hosts.length.toString(), Icons.computer, Colors.cyan),
                 _stat('Online', hp.onlineCount.toString(), Icons.wifi, Colors.green),
+                _stat('SSH', hp.hosts.where((h) => h.sshOpen).length.toString(), Icons.terminal, const Color(0xFF4CAF50)),
                 _stat('Offline', hp.offlineCount.toString(), Icons.wifi_off, Colors.red),
                 _stat('Groups', hp.groups.length.toString(), Icons.folder, Colors.orange),
               ].map((w) => Expanded(child: w)).toList()),
