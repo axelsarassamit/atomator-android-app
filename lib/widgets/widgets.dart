@@ -5,7 +5,7 @@ class StatusBadge extends StatelessWidget {
   final bool isOnline;
   const StatusBadge({super.key, required this.isOnline});
   @override
-  Widget build(BuildContext context) => Container(width: 10, height: 10, decoration: BoxDecoration(shape: BoxShape.circle, color: isOnline ? Colors.green : Colors.red.shade400));
+  Widget build(BuildContext context) => Container(width: 16, height: 16, decoration: BoxDecoration(shape: BoxShape.circle, color: isOnline ? Colors.green : Colors.red.shade400));
 }
 
 class ActionCard extends StatelessWidget {
