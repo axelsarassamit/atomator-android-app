@@ -17,10 +17,10 @@ class Commands {
   static String lockScreen() => 'export DISPLAY=:0; xflock4 2>/dev/null || loginctl lock-sessions 2>/dev/null || xdg-screensaver lock 2>/dev/null; echo LOCKED';
   static String sendMessage(String title, String body) => 'for uid_dir in /run/user/*; do uid=\$(basename \$uid_dir); user=\$(id -nu \$uid 2>/dev/null); if [ -n "\$user" ]; then sudo -u \$user DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=\$uid_dir/bus notify-send "' + title + '" "' + body + '" --urgency=critical 2>/dev/null; sudo -u \$user DISPLAY=:0 xmessage -center "' + title + ': ' + body + '" -timeout 30 2>/dev/null; fi; done; wall "' + title + ': ' + body + '" 2>/dev/null; echo MESSAGE SENT';
   static String installPackage(String p) => 'dpkg --configure -a 2>/dev/null; DEBIAN_FRONTEND=noninteractive apt-get update -qq && apt-get install -y ' + p + ' && echo INSTALLED || echo FAILED';
-  static String installFirefox() => installPackage('firefox-esr');
-  static String installChrome() => 'wget -q -O /tmp/chrome.deb "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb" && dpkg -i /tmp/chrome.deb 2>/dev/null || apt-get install -f -y && rm -f /tmp/chrome.deb && echo INSTALLED || echo FAILED';
-  static String removeFirefox() => 'apt-get remove -y firefox-esr 2>/dev/null; apt-get autoremove -y; echo REMOVED';
-  static String removeChrome() => 'apt-get remove -y google-chrome-stable 2>/dev/null; apt-get autoremove -y; echo REMOVED';
+  static String installFirefox() => 'dpkg --configure -a 2>/dev/null; apt-get update -qq; apt-get install -y firefox 2>/dev/null || apt-get install -y firefox-esr 2>/dev/null || snap install firefox 2>/dev/null && echo INSTALLED || echo FAILED';
+  static String installChrome() => 'dpkg --configure -a 2>/dev/null; wget -q -O /tmp/chrome.deb "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb" && dpkg -i /tmp/chrome.deb 2>/dev/null || apt-get install -f -y && rm -f /tmp/chrome.deb && echo INSTALLED || echo FAILED';
+  static String removeFirefox() => 'dpkg --configure -a 2>/dev/null; apt-get remove -y firefox firefox-esr 2>/dev/null; snap remove firefox 2>/dev/null; apt-get autoremove -y; echo REMOVED';
+  static String removeChrome() => 'dpkg --configure -a 2>/dev/null; apt-get remove -y google-chrome-stable 2>/dev/null; apt-get autoremove -y; echo REMOVED';
   static String fixSlowSudo() => 'HNAME=\$(hostname); grep -q "\$HNAME" /etc/hosts || echo "127.0.1.1 \$HNAME" >> /etc/hosts; echo FIXED';
   static String deleteSSHKeys() => 'rm -f ~/.ssh/known_hosts; echo DONE';
   static String changePassword(String user, String pass) => 'printf "%s:%s" "' + user + '" "' + pass + '" | chpasswd && echo PASSWORD CHANGED || echo FAILED';
