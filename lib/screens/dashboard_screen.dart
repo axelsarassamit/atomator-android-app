@@ -60,11 +60,15 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _stat(String label, String value, IconData icon, Color color) {
-    return Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
-      Icon(icon, color: color, size: 24), const SizedBox(height: 4),
-      Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-      Text(label, style: const TextStyle(fontSize: 10, color: Colors.white38)),
-    ])));
+    return Card(child: Padding(padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4), child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: color, size: 18),
+        const SizedBox(height: 2),
+        FittedBox(fit: BoxFit.scaleDown, child: Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white))),
+        FittedBox(fit: BoxFit.scaleDown, child: Text(label, style: const TextStyle(fontSize: 9, color: Colors.white38))),
+      ],
+    )));
   }
 
   void _fleet(BuildContext context, HostProvider hp) async {
