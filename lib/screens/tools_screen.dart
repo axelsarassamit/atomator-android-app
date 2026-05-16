@@ -14,7 +14,7 @@ class ToolsScreen extends StatelessWidget {
   void _run(BuildContext context, String name, String cmd, {bool sudo = true}) {
     final hp = context.read<HostProvider>(); final jp = context.read<JobProvider>();
     if (hp.credentials == null) return;
-    final hosts = hp.hosts.where((h) => h.isOnline).toList();
+    final hosts = hp.hosts.where((h) => h.sshOpen).toList();
     if (hosts.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No online hosts.'))); return; }
     final job = jp.startJob(name);
     Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: job, totalHosts: hosts.length)));
