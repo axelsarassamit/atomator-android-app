@@ -81,6 +81,7 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 | v1.2.24 | Dashboard host list with SSH indicators, accessible status badges with check/X icons |
 | v1.2.25 | Dashboard: SSH available counter instead of host list, 5 stat cards |
 | v1.3.0 | NEW: Built-in SSH terminal - select a host and type commands interactively |
+| v1.3.1 | Fix All Versions download - popup dialog with progress bar and install button |
 | v1.2.0 | In-app updates - check and download new versions from Settings |
 | v1.1.7 | Updated logos and icons |
 | v1.1.5 | Fix version numbers, About screen, README |
