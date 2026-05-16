@@ -75,6 +75,7 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 | v1.4.2 | Fix Firefox install (tries firefox, firefox-esr, snap), dpkg auto-fix on all install/remove |
 | v1.4.3 | Fix send message - writes temp script to avoid shell quoting issues |
 | v1.4.4 | Fix send message - simple wall + zenity + notify-send, no shell variables |
+| v1.4.5 | Fix send message - runs as SSH user (not root), accesses user DBUS session |
 | v1.2.0 | In-app updates |
 | v1.1.0 | Per-host credentials, WOL, About screen |
 | v1.0.0 | Initial release |
