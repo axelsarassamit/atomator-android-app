@@ -6,10 +6,11 @@ import '../widgets/widgets.dart';
 
 class JobScreen extends StatelessWidget {
   final JobResult job;
-  const JobScreen({super.key, required this.job});
+  final int totalHosts;
+  const JobScreen({super.key, required this.job, this.totalHosts = 0});
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: Text(job.name, style: const TextStyle(fontSize: 16))),
-    body: Consumer<JobProvider>(builder: (context, jp, _) => ResultsList(job: job)),
+    body: Consumer<JobProvider>(builder: (context, jp, _) => ResultsList(job: job, totalHosts: totalHosts)),
   );
 }
