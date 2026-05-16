@@ -89,6 +89,7 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 | v1.3.6 | Report a Problem - bug reports and feature requests with device info |
 | v1.3.7 | Smart host resolution: hostname via SSH, reverse DNS, MAC vendor lookup with 50+ vendors |
 | v1.3.8 | Progress bar on all actions and tools - shows X/total with OK/FAIL live count |
+| v1.3.9 | Actions and tools only run on hosts with SSH available and credentials set |
 | v1.2.0 | In-app updates - check and download new versions from Settings |
 | v1.1.7 | Updated logos and icons |
 | v1.1.5 | Fix version numbers, About screen, README |
