@@ -69,6 +69,7 @@ Get the latest APK from [Releases](https://github.com/axelsarassamit/atomator-an
 | v1.2.6 | Version rollback |
 | v1.3.11 | Fix speedtest output, cross-distro commands, install prompt before speedtest |
 | v1.3.12 | Fix all commands: clean output, sendMessage for all users, no-sudo for read commands |
+| v1.3.13 | Auto-fix dpkg before all apt commands + new Fix dpkg action |
 | v1.2.0 | In-app updates |
 | v1.1.0 | Per-host credentials, WOL, About screen |
 | v1.0.0 | Initial release |
