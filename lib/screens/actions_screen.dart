@@ -21,6 +21,18 @@ class ActionsScreen extends StatelessWidget {
     () async { await for (final r in SSHService.runOnAll(hosts, creds, cmd, sudo: sudo, maxParallel: par)) { jp.addResult(job, r); } jp.finishJob(job); }();
   }
 
+  void _speedTestDialog(BuildContext ctx) {
+    showDialog(context: ctx, builder: (_) => AlertDialog(
+      backgroundColor: const Color(0xFF161B22),
+      title: const Text('Speed Test'),
+      content: const Text('This requires speedtest-cli on each host.\nIf not installed, results will show MISSING.\n\nInstall speedtest-cli first?'),
+      actions: [
+        TextButton(onPressed: () { Navigator.pop(ctx); _run(ctx, 'Speed Test', Commands.speedTest(), par: 3); }, child: const Text('Run Test')),
+        ElevatedButton(onPressed: () { Navigator.pop(ctx); _run(ctx, 'Install speedtest-cli', Commands.installPackage('speedtest-cli')); }, child: const Text('Install First')),
+      ],
+    ));
+  }
+
   void _confirm(BuildContext ctx, String name, String cmd) {
     showDialog(context: ctx, builder: (_) => AlertDialog(backgroundColor: const Color(0xFF161B22), title: Text('Confirm: $name'), content: Text('Are you sure?'),
       actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
@@ -40,7 +52,7 @@ class ActionsScreen extends StatelessWidget {
       ActionCard(icon: Icons.power_settings_new, title: 'Shutdown All', subtitle: 'Power off', iconColor: Colors.red, onTap: () => _confirm(context, 'Shutdown All', Commands.shutdown())),
       const SectionHeader(title: 'NETWORK'),
       ActionCard(icon: Icons.language, title: 'Check Internet', subtitle: 'Verify WAN', onTap: () => _run(context, 'Check Internet', Commands.checkInternet())),
-      ActionCard(icon: Icons.speed, title: 'Speed Test', subtitle: 'speedtest-cli', onTap: () => _run(context, 'Speed Test', Commands.speedTest(), par: 3)),
+      ActionCard(icon: Icons.speed, title: 'Speed Test', subtitle: 'speedtest-cli', onTap: () => _speedTestDialog(context)),
       ActionCard(icon: Icons.wifi_off, title: 'Disable WiFi', subtitle: 'All hosts', onTap: () => _run(context, 'Disable WiFi', Commands.disableWifi())),
       const SectionHeader(title: 'INFORMATION'),
       ActionCard(icon: Icons.storage, title: 'Disk Usage', subtitle: 'Check disk %', onTap: () => _run(context, 'Disk Usage', Commands.diskUsage())),
