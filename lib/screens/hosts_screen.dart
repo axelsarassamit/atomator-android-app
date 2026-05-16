@@ -34,7 +34,7 @@ class HostsScreen extends StatelessWidget {
               background: Container(color: Colors.red, alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 16), child: const Icon(Icons.delete, color: Colors.white)),
               onDismissed: (_) => hp.removeHost(h.ip),
               child: ListTile(
-                leading: Row(mainAxisSize: MainAxisSize.min, children: [StatusBadge(isOnline: h.isOnline), const SizedBox(width: 4), Icon(Icons.terminal, size: 14, color: h.sshOpen ? Colors.green : Colors.red.withAlpha(100))]),
+                leading: Row(mainAxisSize: MainAxisSize.min, children: [StatusBadge(isOnline: h.isOnline), const SizedBox(width: 4), Icon(Icons.terminal, size: 18, color: h.sshOpen ? Colors.green : Colors.red.withAlpha(100))]),
                 title: Text(h.ip, style: const TextStyle(fontFamily: 'RobotoMono', fontSize: 14)),
                 subtitle: Text((h.hostname ?? 'unknown') + (h.sshOpen ? ' [SSH OK]' : h.isOnline ? ' [No SSH]' : '') + (h.hasCustomCreds ? ' [custom creds]' : '') + (h.mac != null ? ' | ' + h.mac! : ''), style: const TextStyle(fontSize: 11, color: Colors.white38)),
                 trailing: const Icon(Icons.edit, size: 16, color: Colors.white24),
