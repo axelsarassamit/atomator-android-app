@@ -1,9 +1,10 @@
-name: Build APK
+name: Build & Release APK
 
 on:
   push:
     branches: [main]
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -11,81 +12,104 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history for automatic release notes
 
+      # ── Resolve version ────────────────────────────────────────────────────
       - name: Get version
         id: version
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+            VER="${GITHUB_REF#refs/tags/v}"
+            echo "version=$VER"          >> $GITHUB_OUTPUT
+            echo "apk_name=atomator-$VER.apk" >> $GITHUB_OUTPUT
+            echo "is_release=true"       >> $GITHUB_OUTPUT
           else
-            echo "version=dev-$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
+            SHA=$(echo "$GITHUB_SHA" | cut -c1-7)
+            echo "version=dev-$SHA"      >> $GITHUB_OUTPUT
+            echo "apk_name=atomator-dev-$SHA.apk" >> $GITHUB_OUTPUT
+            echo "is_release=false"      >> $GITHUB_OUTPUT
           fi
 
+      # ── Toolchain ──────────────────────────────────────────────────────────
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: '17'
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.29.0
+          flutter-version: '3.29.0'
           channel: stable
+          cache: true
 
-      - name: Backup source
+      # ── Project scaffold ───────────────────────────────────────────────────
+      - name: Backup source files
         run: |
-          cp -r lib lib_bak
-          cp -r assets assets_bak
-          cp pubspec.yaml pubspec_bak.yaml
-          cp -r scripts scripts_bak
+          cp -r lib          lib_bak
+          cp -r assets       assets_bak
+          cp    pubspec.yaml pubspec_bak.yaml
+          cp -r scripts      scripts_bak
           cp -r android_manifest android_manifest_bak
 
-      - name: Clean and create project
+      - name: Scaffold clean Flutter project
         run: |
           rm -rf android ios web linux macos windows test
           flutter create --project-name atomator_app .
 
-      - name: Restore source
+      - name: Restore source files
         run: |
           rm -rf lib assets pubspec.yaml scripts android_manifest
-          mv lib_bak lib
-          mv assets_bak assets
+          mv lib_bak          lib
+          mv assets_bak       assets
           mv pubspec_bak.yaml pubspec.yaml
-          mv scripts_bak scripts
+          mv scripts_bak      scripts
           mv android_manifest_bak android_manifest
 
+      # ── Android config & signing ───────────────────────────────────────────
       - name: Patch Android config
         run: python3 scripts/patch_android.py
 
-      - name: Setup signing
+      - name: Setup release signing
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_BASE64:   ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_ALIAS:         ${{ secrets.KEY_ALIAS }}
         run: python3 scripts/setup_signing.py
 
-      - name: Dependencies
+      # ── Build ──────────────────────────────────────────────────────────────
+      - name: Install dependencies
         run: flutter pub get
 
       - name: Generate app icon
         run: dart run flutter_launcher_icons
 
-      - name: Build APK
+      - name: Build release APK
         run: flutter build apk --release
 
       - name: Rename APK
-        run: cp build/app/outputs/flutter-apk/app-release.apk "atomator.${{ steps.version.outputs.version }}.apk"
+        run: cp build/app/outputs/flutter-apk/app-release.apk "${{ steps.version.outputs.apk_name }}"
 
-      - name: Upload artifact
+      # ── Artifacts ─────────────────────────────────────────────────────────
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: atomator-${{ steps.version.outputs.version }}
-          path: "atomator.${{ steps.version.outputs.version }}.apk"
+          name: ${{ steps.version.outputs.apk_name }}
+          path: ${{ steps.version.outputs.apk_name }}
+          retention-days: 30
 
-      - name: Release
+      # ── GitHub Release (tag pushes only) ───────────────────────────────────
+      - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: "atomator.${{ steps.version.outputs.version }}.apk"
-          name: "Atomator Mobile ${{ steps.version.outputs.version }}"
+          name: "Atomator Mobile v${{ steps.version.outputs.version }}"
+          tag_name: ${{ github.ref_name }}
+          files: ${{ steps.version.outputs.apk_name }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
