@@ -3,14 +3,14 @@ import 'dart:io';
 import 'package:open_filex/open_filex.dart';
 
 class UpdateService {
-  static const String currentVersion = '1.4.6';
+  static const String currentVersion = '1.4.7';
   static const String _repo = 'axelsarassamit/atomator-android-app';
 
   static Future<Map<String, dynamic>?> checkForUpdate() async {
     try {
       final client = HttpClient();
       client.connectionTimeout = const Duration(seconds: 10);
-      final request = await client.getUrl(Uri.parse('https://api.github.com/repos/' + _repo + '/releases/latest'));
+      final request = await client.getUrl(Uri.parse('https://api.github.com/repos/$_repo/releases/latest'));
       request.headers.add('Accept', 'application/vnd.github.v3+json');
       request.headers.add('User-Agent', 'Atomator-App');
       final response = await request.close();
@@ -38,7 +38,7 @@ class UpdateService {
   static Future<String?> downloadApk(String url, String filename, Function(double) onProgress) async {
     try {
       final dir = Directory('/storage/emulated/0/Download');
-      final path = (dir.existsSync() ? dir.path : Directory.systemTemp.path) + '/' + filename;
+      final path = '${dir.existsSync() ? dir.path : Directory.systemTemp.path}/$filename';
       final client = HttpClient();
       final request = await client.getUrl(Uri.parse(url));
       final response = await request.close();
@@ -80,8 +80,8 @@ class UpdateService {
   static bool _isNewer(String remote, String local) {
     final r = remote.split('.').map((s) => int.tryParse(s) ?? 0).toList();
     final l = local.split('.').map((s) => int.tryParse(s) ?? 0).toList();
-    while (r.length < 3) r.add(0);
-    while (l.length < 3) l.add(0);
+    while (r.length < 3) { r.add(0); }
+    while (l.length < 3) { l.add(0); }
     for (int i = 0; i < 3; i++) {
       if (r[i] > l[i]) return true;
       if (r[i] < l[i]) return false;

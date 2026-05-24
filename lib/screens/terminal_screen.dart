@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'dart:convert';
-import 'dart:io';
 import '../providers/host_provider.dart';
 import '../models/models.dart';
 
@@ -26,7 +25,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
   void initState() {
     super.initState();
     _selectedHost = widget.initialHost;
-    if (_selectedHost != null) _connect();
+    if (_selectedHost != null) { _connect(); }
   }
 
   @override
@@ -37,30 +36,32 @@ class _TerminalScreenState extends State<TerminalScreen> {
     super.dispose();
   }
 
-  void _addOutput(String text, {Color color = Colors.white70}) {
+  void _addOutput(String text) {
     setState(() => _output.add(text));
     Future.delayed(const Duration(milliseconds: 50), () {
-      if (_scrollCtrl.hasClients) _scrollCtrl.animateTo(_scrollCtrl.position.maxScrollExtent, duration: const Duration(milliseconds: 100), curve: Curves.easeOut);
+      if (_scrollCtrl.hasClients) {
+        _scrollCtrl.animateTo(_scrollCtrl.position.maxScrollExtent, duration: const Duration(milliseconds: 100), curve: Curves.easeOut);
+      }
     });
   }
 
   Future<void> _connect() async {
-    if (_selectedHost == null) return;
+    if (_selectedHost == null) { return; }
     final hp = context.read<HostProvider>();
     final creds = hp.credsForHost(_selectedHost!);
 
     setState(() { _connecting = true; _output.clear(); });
-    _addOutput('Connecting to ' + _selectedHost!.ip + ':22...');
+    _addOutput('Connecting to ${_selectedHost!.ip}:22...');
 
     try {
       final socket = await SSHSocket.connect(_selectedHost!.ip, 22, timeout: const Duration(seconds: 10));
       _client = SSHClient(socket, username: creds.username, onPasswordRequest: () => creds.password);
-      _addOutput('Connected as ' + creds.username + '@' + _selectedHost!.ip);
+      _addOutput('Connected as ${creds.username}@${_selectedHost!.ip}');
       _addOutput('Type commands below. Each command runs independently.');
       _addOutput('');
       setState(() { _connected = true; _connecting = false; });
     } catch (e) {
-      _addOutput('FAILED: ' + e.toString());
+      _addOutput('FAILED: $e');
       setState(() { _connected = false; _connecting = false; });
     }
   }
@@ -75,16 +76,16 @@ class _TerminalScreenState extends State<TerminalScreen> {
 
   Future<void> _runCommand() async {
     final cmd = _cmdCtrl.text.trim();
-    if (cmd.isEmpty || _client == null) return;
+    if (cmd.isEmpty || _client == null) { return; }
     _cmdCtrl.clear();
 
     _addOutput('');
-    _addOutput('\$ ' + cmd);
+    _addOutput('\$ $cmd');
 
     try {
       final hp = context.read<HostProvider>();
       final creds = hp.credsForHost(_selectedHost!);
-      final fullCmd = 'echo "' + creds.password + '" | sudo -S bash -c "' + cmd + '" 2>&1';
+      final fullCmd = 'echo "${creds.password}" | sudo -S bash -c "$cmd" 2>&1';
       final result = await _client!.run(fullCmd);
       final output = utf8.decode(result).trim();
       if (output.isNotEmpty) {
@@ -93,7 +94,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
         }
       }
     } catch (e) {
-      _addOutput('Error: ' + e.toString());
+      _addOutput('Error: $e');
       _addOutput('Connection lost. Reconnecting...');
       setState(() => _connected = false);
       _connect();
@@ -134,7 +135,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_selectedHost != null ? 'SSH: ' + _selectedHost!.ip : 'SSH Terminal', style: const TextStyle(fontFamily: 'monospace', fontSize: 14)),
+        title: Text(_selectedHost != null ? 'SSH: ${_selectedHost!.ip}' : 'SSH Terminal', style: const TextStyle(fontFamily: 'monospace', fontSize: 14)),
         actions: [
           if (_connected) IconButton(icon: const Icon(Icons.link_off, color: Colors.red), tooltip: 'Disconnect', onPressed: _disconnect),
           IconButton(icon: const Icon(Icons.computer), tooltip: 'Select host', onPressed: () => _selectHost(context)),
@@ -152,10 +153,10 @@ class _TerminalScreenState extends State<TerminalScreen> {
               itemBuilder: (context, i) {
                 final line = _output[i];
                 Color color = Colors.white70;
-                if (line.startsWith('\$ ')) color = Colors.cyan;
-                if (line.startsWith('Connected')) color = Colors.green;
-                if (line.startsWith('FAILED') || line.startsWith('Error')) color = Colors.red;
-                if (line.startsWith('Disconnected')) color = Colors.orange;
+                if (line.startsWith('\$ ')) { color = Colors.cyan; }
+                if (line.startsWith('Connected')) { color = Colors.green; }
+                if (line.startsWith('FAILED') || line.startsWith('Error')) { color = Colors.red; }
+                if (line.startsWith('Disconnected')) { color = Colors.orange; }
                 return Text(line, style: TextStyle(fontFamily: 'monospace', fontSize: 12, color: color));
               },
             ),

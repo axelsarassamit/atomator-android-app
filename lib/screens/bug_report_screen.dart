@@ -17,15 +17,15 @@ class _BugReportScreenState extends State<BugReportScreen> {
 
   String _buildReport() {
     final info = StringBuffer();
-    info.writeln('## ' + _category + ': ' + _titleCtrl.text);
+    info.writeln('## $_category: ${_titleCtrl.text}');
     info.writeln('');
     info.writeln('### Description');
     info.writeln(_descCtrl.text);
     info.writeln('');
     info.writeln('### Device Info');
-    info.writeln('- App version: ' + UpdateService.currentVersion);
-    info.writeln('- Platform: ' + Platform.operatingSystem + ' ' + Platform.operatingSystemVersion);
-    info.writeln('- Dart: ' + Platform.version);
+    info.writeln('- App version: ${UpdateService.currentVersion}');
+    info.writeln('- Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}');
+    info.writeln('- Dart: ${Platform.version}');
     return info.toString();
   }
 

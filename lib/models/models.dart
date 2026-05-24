@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class Host {
   final String ip;
   String? hostname;
@@ -48,6 +46,7 @@ class SSHResult {
 class JobResult {
   final String name;
   final DateTime startTime;
+  DateTime? endTime;
   final List<SSHResult> results;
   bool isRunning;
   JobResult({required this.name, DateTime? startTime, List<SSHResult>? results, this.isRunning = true})
@@ -55,4 +54,5 @@ class JobResult {
   int get okCount => results.where((r) => r.success).length;
   int get failCount => results.where((r) => !r.success).length;
   int get total => results.length;
+  Duration? get totalDuration => endTime?.difference(startTime);
 }

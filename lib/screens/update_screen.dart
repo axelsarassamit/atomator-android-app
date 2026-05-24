@@ -76,12 +76,11 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
     if (path != null) {
       setState(() { _downloadedPath = path; _downloading = false; });
       final ok = await UpdateService.installApk(path);
-      if (!ok) setState(() => _error = 'Auto-install failed. File saved to: ' + path + '\nOpen your file manager and tap the APK to install.');
+      if (!ok) { setState(() => _error = 'Auto-install failed. File saved to: $path\nOpen your file manager and tap the APK to install.'); }
     } else {
       setState(() { _error = 'Download failed. Check internet connection.'; _downloading = false; });
     }
   }
-
 
   void _showDownloadDialog(BuildContext context, String url, String filename, String version) {
     if (url.isEmpty) {
@@ -124,7 +123,7 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
         const SizedBox(height: 16),
         const Text('You are on the latest version!', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        Text('Current: v' + UpdateService.currentVersion, style: const TextStyle(color: Colors.white38)),
+        Text('Current: v${UpdateService.currentVersion}', style: const TextStyle(color: Colors.white38)),
         const SizedBox(height: 24),
         SizedBox(width: double.infinity, child: OutlinedButton(onPressed: _checkUpdate, child: const Text('Check Again'))),
         const SizedBox(height: 8),
@@ -134,8 +133,8 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
         const SizedBox(height: 16),
         const Text('Update Available!', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.cyan)),
         const SizedBox(height: 8),
-        Text('Current: v' + UpdateService.currentVersion, style: const TextStyle(color: Colors.white38)),
-        Text('New: v' + (_update!['version'] ?? '?'), style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16)),
+        Text('Current: v${UpdateService.currentVersion}', style: const TextStyle(color: Colors.white38)),
+        Text('New: v${_update!['version'] ?? '?'}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16)),
         if (_update!['body'] != null && (_update!['body'] as String).isNotEmpty) ...[
           const SizedBox(height: 16),
           const Text('Release Notes:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
@@ -149,7 +148,7 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
   }
 
   Widget _allTab() {
-    if (_allReleases.isEmpty) return const Center(child: CircularProgressIndicator());
+    if (_allReleases.isEmpty) { return const Center(child: CircularProgressIndicator()); }
     return ListView.builder(itemCount: _allReleases.length, itemBuilder: (context, index) {
       final r = _allReleases[index];
       final isCurrent = r['version'] == UpdateService.currentVersion;
@@ -159,10 +158,10 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
         child: ExpansionTile(
           leading: Icon(isCurrent ? Icons.check_circle : Icons.history, color: isCurrent ? Colors.green : Colors.white24, size: 20),
           title: Row(children: [
-            Text('v' + r['version'], style: TextStyle(fontWeight: FontWeight.bold, color: isCurrent ? Colors.green : Colors.white)),
+            Text('v${r['version']}', style: TextStyle(fontWeight: FontWeight.bold, color: isCurrent ? Colors.green : Colors.white)),
             if (isCurrent) const Text('  (installed)', style: TextStyle(fontSize: 11, color: Colors.green)),
           ]),
-          subtitle: Text(r['date'] + (hasApk ? ' | ' + sizeMB + ' MB' : ''), style: const TextStyle(fontSize: 11, color: Colors.white38)),
+          subtitle: Text('${r['date']}${hasApk ? ' | $sizeMB MB' : ''}', style: const TextStyle(fontSize: 11, color: Colors.white38)),
           children: [Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             if (r['body'] != null && (r['body'] as String).isNotEmpty) ...[
               Text(r['body'], style: const TextStyle(fontSize: 12, color: Colors.white60)),
@@ -171,7 +170,7 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
             if (hasApk)
               SizedBox(width: double.infinity, child: ElevatedButton.icon(
                 icon: Icon(isCurrent ? Icons.refresh : Icons.download),
-                label: Text(isCurrent ? 'Reinstall v' + r['version'] : 'Download & Install v' + r['version']),
+                label: Text(isCurrent ? 'Reinstall v${r['version']}' : 'Download & Install v${r['version']}'),
                 onPressed: () => _showDownloadDialog(context, r['apkUrl'] ?? '', r['apkName'] ?? 'atomator.apk', r['version']),
               ))
             else const Text('No APK for this version', style: TextStyle(color: Colors.white24, fontSize: 12)),
@@ -182,24 +181,28 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
   }
 
   Widget _downloadWidget(String? url, String filename) {
-    if (url == null) return const Text('No download available', style: TextStyle(color: Colors.red));
+    if (url == null) { return const Text('No download available', style: TextStyle(color: Colors.red)); }
     return Column(children: [
       if (_downloading) ...[
         LinearProgressIndicator(value: _progress, color: Colors.cyan),
         const SizedBox(height: 8),
-        Text((_progress * 100).toInt().toString() + '% downloading...', style: const TextStyle(color: Colors.white38)),
+        Text('${(_progress * 100).toInt()}% downloading...', style: const TextStyle(color: Colors.white38)),
       ] else if (_downloadedPath != null) ...[
         const Icon(Icons.check_circle, color: Colors.green, size: 32),
         const SizedBox(height: 8),
         const Text('Downloaded!', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         SizedBox(width: double.infinity, child: ElevatedButton.icon(icon: const Icon(Icons.install_mobile), label: const Text('Install Now'),
-          onPressed: () async { final ok = await UpdateService.installApk(_downloadedPath!); if (!ok) setState(() => _error = 'Tap Open Downloads below and install the APK manually'); })),
+          onPressed: () async {
+            if (!mounted) { return; }
+            final ok = await UpdateService.installApk(_downloadedPath!);
+            if (!ok && mounted) { setState(() => _error = 'Tap Open Downloads below and install the APK manually'); }
+          })),
         const SizedBox(height: 8),
         SizedBox(width: double.infinity, child: OutlinedButton.icon(icon: const Icon(Icons.folder_open), label: const Text('Open Downloads Folder'),
           onPressed: () => UpdateService.openDownloads())),
         const SizedBox(height: 8),
-        Text('Saved to: ' + (_downloadedPath ?? ''), style: const TextStyle(fontSize: 10, color: Colors.white24)),
+        Text('Saved to: ${_downloadedPath ?? ''}', style: const TextStyle(fontSize: 10, color: Colors.white24)),
       ] else ...[
         SizedBox(width: double.infinity, child: ElevatedButton.icon(icon: const Icon(Icons.download), label: const Text('Download & Install'), onPressed: () => _downloadAndInstall(url, filename))),
       ],
@@ -235,7 +238,7 @@ class _DownloadDialogState extends State<_DownloadDialog> {
     if (path != null) {
       setState(() { _path = path; _downloading = false; });
       final ok = await UpdateService.installApk(path);
-      if (!ok) setState(() => _error = 'Auto-install failed. File saved to Downloads folder.');
+      if (!ok) { setState(() => _error = 'Auto-install failed. File saved to Downloads folder.'); }
     } else {
       setState(() { _error = 'Download failed'; _downloading = false; });
     }
@@ -245,12 +248,12 @@ class _DownloadDialogState extends State<_DownloadDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: const Color(0xFF161B22),
-      title: Text('v' + widget.version, style: const TextStyle(fontSize: 16)),
+      title: Text('v${widget.version}', style: const TextStyle(fontSize: 16)),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
         if (_downloading) ...[
           LinearProgressIndicator(value: _progress, color: Colors.cyan),
           const SizedBox(height: 12),
-          Text((_progress * 100).toInt().toString() + '% downloading...', style: const TextStyle(color: Colors.white38)),
+          Text('${(_progress * 100).toInt()}% downloading...', style: const TextStyle(color: Colors.white38)),
         ] else if (_path != null) ...[
           const Icon(Icons.check_circle, color: Colors.green, size: 40),
           const SizedBox(height: 12),
@@ -279,4 +282,3 @@ class _DownloadDialogState extends State<_DownloadDialog> {
     );
   }
 }
-
