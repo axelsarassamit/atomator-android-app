@@ -27,4 +27,24 @@ class Commands {
   static String speedTest() => 'if ! which speedtest-cli >/dev/null 2>&1; then echo MISSING: speedtest-cli not installed; else speedtest-cli --simple; fi';
   static String fixDpkg() => 'dpkg --configure -a && apt-get install -f -y && echo DPKG FIXED';
   static String fleetSummary() => 'RAM=\$(free -m | grep Mem | tr -s " " | cut -d" " -f2); DISK=\$(df / | tail -1 | tr -s " " | cut -d" " -f5 | tr -d "%"); UPT=\$(cat /proc/uptime | cut -d. -f1); echo "\$RAM|\$DISK|\$UPT"';
+
+  // ── Generic removal ────────────────────────────────────────────────────────
+  static String removePackage(String p) => 'dpkg --configure -a 2>/dev/null; apt-get remove -y $p 2>/dev/null; apt-get autoremove -y; echo REMOVED';
+
+  // ── App-specific installs ──────────────────────────────────────────────────
+  static String installVSCode() => 'dpkg --configure -a 2>/dev/null; wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/ms-archive-keyring.gpg 2>/dev/null && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/ms-archive-keyring.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list && DEBIAN_FRONTEND=noninteractive apt-get update -qq && apt-get install -y code && echo INSTALLED || echo FAILED';
+  static String installDiscord() => 'dpkg --configure -a 2>/dev/null; wget -q -O /tmp/discord.deb "https://discord.com/api/download?platform=linux&format=deb" && dpkg -i /tmp/discord.deb 2>/dev/null; apt-get install -f -y 2>/dev/null; rm -f /tmp/discord.deb; dpkg -l discord 2>/dev/null | grep -q "^ii" && echo INSTALLED || echo FAILED';
+  static String installZoom() => 'dpkg --configure -a 2>/dev/null; wget -q -O /tmp/zoom.deb "https://zoom.us/client/latest/zoom_amd64.deb" && dpkg -i /tmp/zoom.deb 2>/dev/null; apt-get install -f -y 2>/dev/null; rm -f /tmp/zoom.deb; dpkg -l zoom 2>/dev/null | grep -q "^ii" && echo INSTALLED || echo FAILED';
+  static String installSteam() => 'dpkg --configure -a 2>/dev/null; dpkg --add-architecture i386 2>/dev/null; DEBIAN_FRONTEND=noninteractive apt-get update -qq && apt-get install -y steam-launcher 2>/dev/null || apt-get install -y steam 2>/dev/null && echo INSTALLED || echo FAILED';
+
+  // ── Performance ────────────────────────────────────────────────────────────
+  static String clearRamCache() => 'sync && echo 3 > /proc/sys/vm/drop_caches && free -h && echo CACHE CLEARED';
+  static String setCpuPerformance() => 'for gov in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo performance > \$gov 2>/dev/null; done; echo Governor: \$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null || echo N/A)';
+  static String setCpuPowersave() => 'for gov in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo powersave > \$gov 2>/dev/null; done; echo Governor: \$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null || echo N/A)';
+  static String setSwappiness(int value) => 'sysctl -w vm.swappiness=$value && echo "vm.swappiness=$value" > /etc/sysctl.d/99-atomator-swappiness.conf && echo SWAPPINESS SET TO $value';
+  static String checkTemperatures() => 'echo === CPU ===; for zone in /sys/class/thermal/thermal_zone*; do tp=\$(cat \$zone/type 2>/dev/null); t=\$(cat \$zone/temp 2>/dev/null); [ -n "\$t" ] && echo "\$tp: \$((\$t/1000))C"; done; echo === lm-sensors ===; sensors 2>/dev/null || echo "Not installed — run: apt install lm-sensors && sensors-detect"; echo === Disk ===; hddtemp /dev/sda 2>/dev/null || smartctl -A /dev/sda 2>/dev/null | grep -iE "194|190" || echo N/A';
+  static String disableCompositing() => 'DISPLAY=:0 xfconf-query -c xfwm4 -p /general/use_compositing -s false 2>/dev/null && echo COMPOSITING DISABLED || echo Not Xfce or display unavailable';
+  static String enableCompositing() => 'DISPLAY=:0 xfconf-query -c xfwm4 -p /general/use_compositing -s true 2>/dev/null && echo COMPOSITING ENABLED || echo Not Xfce or display unavailable';
+  static String disableBluetooth() => 'systemctl stop bluetooth 2>/dev/null; systemctl disable bluetooth 2>/dev/null; rfkill block bluetooth 2>/dev/null; echo BLUETOOTH DISABLED';
+  static String enableBluetooth() => 'rfkill unblock bluetooth 2>/dev/null; systemctl enable bluetooth 2>/dev/null; systemctl start bluetooth 2>/dev/null; echo BLUETOOTH ENABLED';
 }

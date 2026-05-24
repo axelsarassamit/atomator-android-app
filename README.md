@@ -4,7 +4,7 @@
 
 **Manage your entire Linux fleet from your Android phone.**
 
-Direct SSH • 45+ Commands • Built-in Terminal • Wake-on-LAN • Fleet Dashboard
+Direct SSH • 55+ Commands • Built-in Terminal • Wake-on-LAN • Fleet Dashboard
 
 [![Latest Release](https://img.shields.io/github/v/release/axelsarassamit/atomator-android-app?color=cyan&label=Latest)](https://github.com/axelsarassamit/atomator-android-app/releases)
 [![Downloads](https://img.shields.io/github/downloads/axelsarassamit/atomator-android-app/total?color=green&label=Downloads)](https://github.com/axelsarassamit/atomator-android-app/releases)
@@ -39,6 +39,8 @@ Whether you manage 5 machines or 500, Atomator lets you update, monitor, and con
 | 🔒 **Lock Screens** | One tap, every screen locked |
 | 👤 **Per-Host Credentials** | Different user/password for each device |
 | 🌐 **DNS Management** | Change DNS servers on all hosts in one tap |
+| 📦 **App Installer** | 10-app catalog (VLC, GIMP, VS Code, Discord, Zoom…) — install or remove |
+| ⚡ **Performance Tools** | CPU governor, RAM cache flush, swappiness, temperatures, compositing |
 | 📋 **Job History** | Full history with duration, OK/fail counts, copy output |
 | 🔄 **In-App Updates** | Download new versions or roll back — from within the app |
 | 🛡️ **Encrypted Storage** | Credentials stored securely on device |
@@ -92,10 +94,11 @@ Whether you manage 5 machines or 500, Atomator lets you update, monitor, and con
 ## Release History
 
 <details>
-<summary>Click to expand (35 releases)</summary>
+<summary>Click to expand (36 releases)</summary>
 
 | Version | Changes |
 |---------|---------|
+| v1.6.0 | **App installer** (10-app catalog with install/remove), **Performance section** (CPU governor, RAM cache, swappiness, temperatures, compositing, Bluetooth) |
 | v1.5.0 | **Job tracking** (duration, active banner), **DNS change** dialog, password confirm, sudo toggle, copy output, empty-state screens, last-seen times, lint clean |
 | v1.4.6 | Fix send message shell syntax |
 | v1.4.5 | Fix send message: runs as SSH user |
