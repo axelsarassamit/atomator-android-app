@@ -85,9 +85,23 @@ class _TerminalScreenState extends State<TerminalScreen> {
     try {
       final hp = context.read<HostProvider>();
       final creds = hp.credsForHost(_selectedHost!);
-      final fullCmd = 'echo "${creds.password}" | sudo -S bash -c "$cmd" 2>&1';
+
+      // Run the command as typed. For sudo commands, strip the 'sudo ' prefix
+      // and re-execute via sudo -S with the password injected through stdin.
+      // Base64-encode the inner command so all special characters (quotes,
+      // dollar signs, backticks) survive the shell wrapping intact.
+      final String fullCmd;
+      if (cmd.startsWith('sudo ')) {
+        final innerCmd = cmd.substring(5);
+        final b64 = base64Encode(utf8.encode(innerCmd));
+        final pass = creds.password.replaceAll("'", "'\\''");
+        fullCmd = "printf '%s\\n' '$pass' | sudo -S bash -c 'echo $b64 | base64 -d | bash' 2>&1";
+      } else {
+        fullCmd = '$cmd 2>&1';
+      }
+
       final result = await _client!.run(fullCmd);
-      final output = utf8.decode(result).trim();
+      final output = utf8.decode(result, allowMalformed: true).trim();
       if (output.isNotEmpty) {
         for (final line in output.split('\n')) {
           _addOutput(line);
