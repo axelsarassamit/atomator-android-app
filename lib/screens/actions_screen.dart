@@ -60,6 +60,8 @@ class ActionsScreen extends StatelessWidget {
     }();
   }
 
+  // ── Dialogs ────────────────────────────────────────────────────────────────
+
   void _speedTestDialog(BuildContext ctx) {
     showDialog(context: ctx, builder: (_) => AlertDialog(
       backgroundColor: const Color(0xFF161B22),
@@ -97,7 +99,7 @@ class ActionsScreen extends StatelessWidget {
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
         ElevatedButton(onPressed: () {
-          if (c.text.trim().isEmpty) return;
+          if (c.text.trim().isEmpty) { return; }
           Navigator.pop(ctx);
           _run(ctx, 'Change DNS', Commands.changeDns(c.text.trim()));
         }, child: const Text('Apply')),
@@ -114,7 +116,7 @@ class ActionsScreen extends StatelessWidget {
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
         ElevatedButton(onPressed: () {
-          if (c.text.trim().isEmpty) return;
+          if (c.text.trim().isEmpty) { return; }
           Navigator.pop(ctx);
           _run(ctx, 'Install ${c.text.trim()}', Commands.installPackage(c.text.trim()));
         }, child: const Text('Install')),
@@ -122,36 +124,147 @@ class ActionsScreen extends StatelessWidget {
     ));
   }
 
+  void _appDialog(BuildContext ctx) {
+    final apps = <_AppDef>[
+      _AppDef('VLC',         'Universal media player',   Icons.play_circle_outline,  Colors.orange,     Commands.installPackage('vlc'),                   Commands.removePackage('vlc')),
+      _AppDef('GIMP',        'Photo & image editor',     Icons.brush,                Colors.purple,     Commands.installPackage('gimp'),                  Commands.removePackage('gimp')),
+      _AppDef('LibreOffice', 'Office suite',             Icons.description,          Colors.cyan,       Commands.installPackage('libreoffice'),            Commands.removePackage('libreoffice')),
+      _AppDef('Thunderbird', 'Email client',             Icons.email,                Colors.blue,       Commands.installPackage('thunderbird'),            Commands.removePackage('thunderbird')),
+      _AppDef('VS Code',     'Code editor',              Icons.code,                 Colors.blueAccent, Commands.installVSCode(),                         Commands.removePackage('code')),
+      _AppDef('Remmina',     'Remote desktop (RDP/VNC)', Icons.desktop_windows,      Colors.teal,       Commands.installPackage('remmina remmina-plugin-rdp'), Commands.removePackage('remmina')),
+      _AppDef('Discord',     'Chat & voice',             Icons.forum,                const Color(0xFF7289DA), Commands.installDiscord(),               Commands.removePackage('discord')),
+      _AppDef('Zoom',        'Video meetings',           Icons.video_call,           Colors.blue,       Commands.installZoom(),                           Commands.removePackage('zoom')),
+      _AppDef('FileZilla',   'FTP / SFTP client',        Icons.folder_open,          Colors.orange,     Commands.installPackage('filezilla'),             Commands.removePackage('filezilla')),
+      _AppDef('Steam',       'Gaming platform',          Icons.sports_esports,       Colors.blueGrey,   Commands.installSteam(),                          Commands.removePackage('steam')),
+    ];
+
+    showDialog(context: ctx, builder: (_) => AlertDialog(
+      backgroundColor: const Color(0xFF161B22),
+      title: const Text('Install Applications'),
+      contentPadding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 520,
+        child: ListView.builder(
+          itemCount: apps.length,
+          itemBuilder: (_, i) {
+            final app = apps[i];
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                child: Row(children: [
+                  Icon(app.icon, color: app.color, size: 26),
+                  const SizedBox(width: 10),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(app.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    Text(app.subtitle, style: const TextStyle(fontSize: 11, color: Colors.white38)),
+                  ])),
+                  TextButton(
+                    onPressed: () { Navigator.pop(ctx); _run(ctx, 'Remove ${app.name}', app.removeCmd); },
+                    style: TextButton.styleFrom(foregroundColor: Colors.red, padding: const EdgeInsets.symmetric(horizontal: 6)),
+                    child: const Text('Remove', style: TextStyle(fontSize: 11)),
+                  ),
+                  const SizedBox(width: 4),
+                  ElevatedButton(
+                    onPressed: () { Navigator.pop(ctx); _run(ctx, 'Install ${app.name}', app.installCmd); },
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 10), minimumSize: const Size(64, 32), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                    child: const Text('Install', style: TextStyle(fontSize: 11)),
+                  ),
+                ]),
+              ),
+            );
+          },
+        ),
+      ),
+      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close'))],
+    ));
+  }
+
+  void _swappinessDialog(BuildContext ctx) {
+    const options = [
+      (value: 10,  label: '10 — Desktop optimized (recommended)'),
+      (value: 30,  label: '30 — Balanced'),
+      (value: 60,  label: '60 — Default (reset to system default)'),
+      (value: 80,  label: '80 — Server / high-memory pressure'),
+    ];
+    showDialog(context: ctx, builder: (_) => AlertDialog(
+      backgroundColor: const Color(0xFF161B22),
+      title: const Text('Set Swappiness'),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        const Text('Lower = less swap usage, better for desktops with plenty of RAM.', style: TextStyle(fontSize: 12, color: Colors.white38)),
+        const SizedBox(height: 12),
+        ...options.map((o) => ListTile(
+          dense: true,
+          title: Text(o.label, style: const TextStyle(fontSize: 13)),
+          onTap: () { Navigator.pop(ctx); _run(ctx, 'Set Swappiness ${o.value}', Commands.setSwappiness(o.value)); },
+        )),
+      ]),
+      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel'))],
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(appBar: AppBar(title: const Text('Actions')), body: ListView(children: [
+
+      // ── SYSTEM UPDATES ─────────────────────────────────────────────────────
       const SectionHeader(title: 'SYSTEM UPDATES'),
       ActionCard(icon: Icons.system_update, title: 'Update All', subtitle: 'apt update + upgrade', onTap: () => _run(context, 'Update All', Commands.updateAll())),
       ActionCard(icon: Icons.cleaning_services, title: 'Update + Purge Kernels', subtitle: 'Frees disk space', onTap: () => _run(context, 'Update + Purge', Commands.updatePurgeKernels())),
       ActionCard(icon: Icons.block, title: 'Disable Auto Updates', subtitle: 'Stop unattended-upgrades', onTap: () => _run(context, 'Disable Updates', Commands.disableAutoUpdates())),
+
+      // ── MAINTENANCE ────────────────────────────────────────────────────────
       const SectionHeader(title: 'MAINTENANCE'),
       ActionCard(icon: Icons.delete_sweep, title: 'System Cleanup', subtitle: 'Cache, logs, trash', onTap: () => _run(context, 'Cleanup', Commands.cleanup())),
       ActionCard(icon: Icons.build_circle, title: 'Fix dpkg', subtitle: 'Fix interrupted installs', onTap: () => _run(context, 'Fix dpkg', Commands.fixDpkg())),
       ActionCard(icon: Icons.restart_alt, title: 'Reboot All', subtitle: 'Restart hosts', iconColor: Colors.orange, onTap: () => _confirm(context, 'Reboot All', Commands.reboot())),
       ActionCard(icon: Icons.power_settings_new, title: 'Shutdown All', subtitle: 'Power off', iconColor: Colors.red, onTap: () => _confirm(context, 'Shutdown All', Commands.shutdown())),
+
+      // ── NETWORK ────────────────────────────────────────────────────────────
       const SectionHeader(title: 'NETWORK'),
       ActionCard(icon: Icons.language, title: 'Check Internet', subtitle: 'Verify WAN', onTap: () => _run(context, 'Check Internet', Commands.checkInternet(), sudo: false)),
       ActionCard(icon: Icons.speed, title: 'Speed Test', subtitle: 'speedtest-cli', onTap: () => _speedTestDialog(context)),
       ActionCard(icon: Icons.dns, title: 'Change DNS', subtitle: 'Set custom DNS servers', onTap: () => _dnsDialog(context)),
       ActionCard(icon: Icons.wifi_off, title: 'Disable WiFi', subtitle: 'All hosts', onTap: () => _run(context, 'Disable WiFi', Commands.disableWifi())),
+
+      // ── INFORMATION ────────────────────────────────────────────────────────
       const SectionHeader(title: 'INFORMATION'),
       ActionCard(icon: Icons.storage, title: 'Disk Usage', subtitle: 'Check disk %', onTap: () => _run(context, 'Disk Usage', Commands.diskUsage(), sudo: false)),
       ActionCard(icon: Icons.memory, title: 'RAM Info', subtitle: 'Memory usage', onTap: () => _run(context, 'RAM Info', Commands.ramInfo(), sudo: false)),
       ActionCard(icon: Icons.schedule, title: 'Uptime', subtitle: 'How long running', onTap: () => _run(context, 'Uptime', Commands.uptime(), sudo: false)),
       ActionCard(icon: Icons.miscellaneous_services, title: 'Services', subtitle: 'SSH, NM, cron', onTap: () => _run(context, 'Services', Commands.services(), sudo: false)),
       ActionCard(icon: Icons.info, title: 'Hardware Info', subtitle: 'CPU, model, serial', onTap: () => _run(context, 'Hardware', Commands.hardwareInfo())),
+
+      // ── SOFTWARE ───────────────────────────────────────────────────────────
       const SectionHeader(title: 'SOFTWARE'),
       ActionCard(icon: Icons.install_desktop, title: 'Install Package', subtitle: 'Any apt package', onTap: () => _pkgDialog(context)),
+      ActionCard(icon: Icons.apps, title: 'Install Applications', subtitle: '10 popular apps — install or remove', iconColor: Colors.cyan, onTap: () => _appDialog(context)),
       ActionCard(icon: Icons.web, title: 'Install Firefox', subtitle: 'ESR browser', onTap: () => _run(context, 'Install Firefox', Commands.installFirefox())),
       ActionCard(icon: Icons.web, title: 'Install Chrome', subtitle: 'Google Chrome', onTap: () => _run(context, 'Install Chrome', Commands.installChrome())),
       ActionCard(icon: Icons.delete, title: 'Remove Firefox', subtitle: 'Uninstall', iconColor: Colors.red, onTap: () => _run(context, 'Remove Firefox', Commands.removeFirefox())),
       ActionCard(icon: Icons.delete, title: 'Remove Chrome', subtitle: 'Uninstall', iconColor: Colors.red, onTap: () => _run(context, 'Remove Chrome', Commands.removeChrome())),
+
+      // ── PERFORMANCE ────────────────────────────────────────────────────────
+      const SectionHeader(title: 'PERFORMANCE'),
+      ActionCard(icon: Icons.memory, title: 'Clear RAM Cache', subtitle: 'Flush page cache & dentries', onTap: () => _run(context, 'Clear RAM Cache', Commands.clearRamCache())),
+      ActionCard(icon: Icons.bolt, title: 'CPU: Performance Mode', subtitle: 'Set scaling governor to performance', iconColor: Colors.green, onTap: () => _run(context, 'CPU Performance Mode', Commands.setCpuPerformance())),
+      ActionCard(icon: Icons.battery_saver, title: 'CPU: Powersave Mode', subtitle: 'Set scaling governor to powersave', iconColor: Colors.green, onTap: () => _run(context, 'CPU Powersave Mode', Commands.setCpuPowersave())),
+      ActionCard(icon: Icons.tune, title: 'Set Swappiness', subtitle: 'Reduce swap usage (desktop-optimized)', onTap: () => _swappinessDialog(context)),
+      ActionCard(icon: Icons.thermostat, title: 'Check Temperatures', subtitle: 'CPU thermal zones + lm-sensors', onTap: () => _run(context, 'Temperatures', Commands.checkTemperatures(), sudo: false)),
+      ActionCard(icon: Icons.desktop_windows, title: 'Disable Compositing', subtitle: 'Turn off Xfce desktop effects', iconColor: Colors.orange, onTap: () => _run(context, 'Disable Compositing', Commands.disableCompositing())),
+      ActionCard(icon: Icons.desktop_windows, title: 'Enable Compositing', subtitle: 'Turn on Xfce desktop effects', iconColor: Colors.green, onTap: () => _run(context, 'Enable Compositing', Commands.enableCompositing())),
+      ActionCard(icon: Icons.bluetooth_disabled, title: 'Disable Bluetooth', subtitle: 'Stop & disable BT service', iconColor: Colors.orange, onTap: () => _run(context, 'Disable Bluetooth', Commands.disableBluetooth())),
+      ActionCard(icon: Icons.bluetooth, title: 'Enable Bluetooth', subtitle: 'Start & enable BT service', iconColor: Colors.blue, onTap: () => _run(context, 'Enable Bluetooth', Commands.enableBluetooth())),
+
       const SizedBox(height: 80),
     ]));
   }
+}
+
+class _AppDef {
+  final String name, subtitle, installCmd, removeCmd;
+  final IconData icon;
+  final Color color;
+  const _AppDef(this.name, this.subtitle, this.icon, this.color, this.installCmd, this.removeCmd);
 }
