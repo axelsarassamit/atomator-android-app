@@ -24,11 +24,11 @@ class ActionsScreen extends StatelessWidget {
     }
     showDialog(context: context, builder: (_) => AlertDialog(
       backgroundColor: const Color(0xFF161B22),
-      title: Text('Run: ' + name, style: const TextStyle(fontSize: 14)),
+      title: Text('Run: $name', style: const TextStyle(fontSize: 14)),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
         ListTile(
           leading: const Icon(Icons.select_all, color: Colors.cyan),
-          title: Text('All hosts (' + allSsh.length.toString() + ')', style: const TextStyle(fontSize: 14)),
+          title: Text('All hosts (${allSsh.length})', style: const TextStyle(fontSize: 14)),
           onTap: () { Navigator.pop(context); _execute(context, name, cmd, allSsh, sudo: sudo, par: par); },
         ),
         const Divider(color: Colors.white12),
@@ -36,9 +36,9 @@ class ActionsScreen extends StatelessWidget {
           final groupHosts = hp.hostsInGroup(g).where((h) => h.sshOpen).toList();
           return ListTile(
             leading: const Icon(Icons.folder, color: Colors.orange, size: 20),
-            title: Text('[' + g + '] (' + groupHosts.length.toString() + ')', style: const TextStyle(fontSize: 14)),
+            title: Text('[$g] (${groupHosts.length})', style: const TextStyle(fontSize: 14)),
             enabled: groupHosts.isNotEmpty,
-            onTap: groupHosts.isEmpty ? null : () { Navigator.pop(context); _execute(context, name + ' [' + g + ']', cmd, groupHosts, sudo: sudo, par: par); },
+            onTap: groupHosts.isEmpty ? null : () { Navigator.pop(context); _execute(context, '$name [$g]', cmd, groupHosts, sudo: sudo, par: par); },
           );
         }),
       ]),
@@ -73,9 +73,53 @@ class ActionsScreen extends StatelessWidget {
   }
 
   void _confirm(BuildContext ctx, String name, String cmd) {
-    showDialog(context: ctx, builder: (_) => AlertDialog(backgroundColor: const Color(0xFF161B22), title: Text('Confirm: $name'), content: Text('Are you sure?'),
-      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-        ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.red), onPressed: () { Navigator.pop(ctx); _run(ctx, name, cmd); }, child: const Text('Yes'))]));
+    showDialog(context: ctx, builder: (_) => AlertDialog(
+      backgroundColor: const Color(0xFF161B22),
+      title: Text('Confirm: $name'),
+      content: const Text('Are you sure?'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+        ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.red), onPressed: () { Navigator.pop(ctx); _run(ctx, name, cmd); }, child: const Text('Yes')),
+      ],
+    ));
+  }
+
+  void _dnsDialog(BuildContext ctx) {
+    final c = TextEditingController(text: '1.1.1.1 8.8.8.8');
+    showDialog(context: ctx, builder: (_) => AlertDialog(
+      backgroundColor: const Color(0xFF161B22),
+      title: const Text('Change DNS'),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: c, decoration: const InputDecoration(labelText: 'DNS servers (space-separated)', border: OutlineInputBorder(), hintText: '1.1.1.1 8.8.8.8')),
+        const SizedBox(height: 8),
+        const Text('Applies to active ethernet via NetworkManager', style: TextStyle(fontSize: 11, color: Colors.white38)),
+      ]),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+        ElevatedButton(onPressed: () {
+          if (c.text.trim().isEmpty) return;
+          Navigator.pop(ctx);
+          _run(ctx, 'Change DNS', Commands.changeDns(c.text.trim()));
+        }, child: const Text('Apply')),
+      ],
+    ));
+  }
+
+  void _pkgDialog(BuildContext ctx) {
+    final c = TextEditingController();
+    showDialog(context: ctx, builder: (_) => AlertDialog(
+      backgroundColor: const Color(0xFF161B22),
+      title: const Text('Install Package'),
+      content: TextField(controller: c, autofocus: true, decoration: const InputDecoration(labelText: 'Package name(s)', border: OutlineInputBorder(), hintText: 'htop neofetch')),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+        ElevatedButton(onPressed: () {
+          if (c.text.trim().isEmpty) return;
+          Navigator.pop(ctx);
+          _run(ctx, 'Install ${c.text.trim()}', Commands.installPackage(c.text.trim()));
+        }, child: const Text('Install')),
+      ],
+    ));
   }
 
   @override
@@ -88,11 +132,12 @@ class ActionsScreen extends StatelessWidget {
       const SectionHeader(title: 'MAINTENANCE'),
       ActionCard(icon: Icons.delete_sweep, title: 'System Cleanup', subtitle: 'Cache, logs, trash', onTap: () => _run(context, 'Cleanup', Commands.cleanup())),
       ActionCard(icon: Icons.build_circle, title: 'Fix dpkg', subtitle: 'Fix interrupted installs', onTap: () => _run(context, 'Fix dpkg', Commands.fixDpkg())),
-          ActionCard(icon: Icons.restart_alt, title: 'Reboot All', subtitle: 'Restart hosts', iconColor: Colors.orange, onTap: () => _confirm(context, 'Reboot All', Commands.reboot())),
+      ActionCard(icon: Icons.restart_alt, title: 'Reboot All', subtitle: 'Restart hosts', iconColor: Colors.orange, onTap: () => _confirm(context, 'Reboot All', Commands.reboot())),
       ActionCard(icon: Icons.power_settings_new, title: 'Shutdown All', subtitle: 'Power off', iconColor: Colors.red, onTap: () => _confirm(context, 'Shutdown All', Commands.shutdown())),
       const SectionHeader(title: 'NETWORK'),
       ActionCard(icon: Icons.language, title: 'Check Internet', subtitle: 'Verify WAN', onTap: () => _run(context, 'Check Internet', Commands.checkInternet(), sudo: false)),
       ActionCard(icon: Icons.speed, title: 'Speed Test', subtitle: 'speedtest-cli', onTap: () => _speedTestDialog(context)),
+      ActionCard(icon: Icons.dns, title: 'Change DNS', subtitle: 'Set custom DNS servers', onTap: () => _dnsDialog(context)),
       ActionCard(icon: Icons.wifi_off, title: 'Disable WiFi', subtitle: 'All hosts', onTap: () => _run(context, 'Disable WiFi', Commands.disableWifi())),
       const SectionHeader(title: 'INFORMATION'),
       ActionCard(icon: Icons.storage, title: 'Disk Usage', subtitle: 'Check disk %', onTap: () => _run(context, 'Disk Usage', Commands.diskUsage(), sudo: false)),
@@ -108,13 +153,5 @@ class ActionsScreen extends StatelessWidget {
       ActionCard(icon: Icons.delete, title: 'Remove Chrome', subtitle: 'Uninstall', iconColor: Colors.red, onTap: () => _run(context, 'Remove Chrome', Commands.removeChrome())),
       const SizedBox(height: 80),
     ]));
-  }
-
-  void _pkgDialog(BuildContext ctx) {
-    final c = TextEditingController();
-    showDialog(context: ctx, builder: (_) => AlertDialog(backgroundColor: const Color(0xFF161B22), title: const Text('Install Package'),
-      content: TextField(controller: c, decoration: const InputDecoration(labelText: 'Package name(s)', border: OutlineInputBorder(), hintText: 'htop neofetch')),
-      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-        ElevatedButton(onPressed: () { Navigator.pop(ctx); _run(ctx, 'Install ${c.text}', Commands.installPackage(c.text)); }, child: const Text('Install'))]));
   }
 }

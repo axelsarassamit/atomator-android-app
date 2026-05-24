@@ -9,5 +9,6 @@ class JobProvider extends ChangeNotifier {
 
   JobResult startJob(String name) { final job = JobResult(name: name); _jobs.insert(0, job); notifyListeners(); return job; }
   void addResult(JobResult job, SSHResult result) { job.results.add(result); notifyListeners(); }
-  void finishJob(JobResult job) { job.isRunning = false; notifyListeners(); }
+  void finishJob(JobResult job) { job.isRunning = false; job.endTime = DateTime.now(); notifyListeners(); }
+  void clearHistory() { _jobs.removeWhere((j) => !j.isRunning); notifyListeners(); }
 }

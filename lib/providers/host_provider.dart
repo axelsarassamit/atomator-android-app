@@ -12,6 +12,7 @@ class HostProvider extends ChangeNotifier {
   bool _isChecking = false;
   int _checkProgress = 0;
   int _checkTotal = 0;
+  bool _isCollectingMacs = false;
 
   HostProvider(this._storage) { _loadData(); }
 
@@ -19,9 +20,10 @@ class HostProvider extends ChangeNotifier {
   Credentials? get credentials => _credentials;
   bool get isConfigured => _isConfigured;
   bool get isChecking => _isChecking;
+  bool get isCollectingMacs => _isCollectingMacs;
   int get checkProgress => _checkProgress;
   int get checkTotal => _checkTotal;
-  String get checkStatus => _isChecking ? "Checking " + _checkProgress.toString() + "/" + _checkTotal.toString() : "";
+  String get checkStatus => _isChecking ? 'Checking $_checkProgress/$_checkTotal' : '';
   int get onlineCount => _hosts.where((h) => h.isOnline).length;
   int get offlineCount => _hosts.where((h) => !h.isOnline).length;
   List<String> get groups => _hosts.map((h) => h.group).toSet().toList()..sort();
@@ -201,6 +203,9 @@ class HostProvider extends ChangeNotifier {
   }
 
   Future<void> collectMacAddresses() async {
+    if (_isCollectingMacs) return;
+    _isCollectingMacs = true;
+    notifyListeners();
     final futures = _hosts.where((h) => h.isOnline).map((h) async {
       try {
         final r = await SSHService.runCommand(h.ip, credsForHost(h), 'ip link show | grep -A1 "state UP" | grep link/ether | head -1 | tr -s " " | cut -d" " -f3', timeoutSec: 5);
@@ -208,7 +213,9 @@ class HostProvider extends ChangeNotifier {
       } catch (_) {}
     });
     await Future.wait(futures);
-    await _storage.saveHosts(_hosts); notifyListeners();
+    await _storage.saveHosts(_hosts);
+    _isCollectingMacs = false;
+    notifyListeners();
   }
 
   Future<void> removeGroup(String group) async {

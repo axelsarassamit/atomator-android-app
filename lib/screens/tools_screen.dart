@@ -23,15 +23,19 @@ class ToolsScreen extends StatelessWidget {
     }
     showDialog(context: context, builder: (_) => AlertDialog(
       backgroundColor: const Color(0xFF161B22),
-      title: Text('Run: ' + name, style: const TextStyle(fontSize: 14)),
+      title: Text('Run: $name', style: const TextStyle(fontSize: 14)),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
-        ListTile(leading: const Icon(Icons.select_all, color: Colors.cyan), title: Text('All hosts (' + allSsh.length.toString() + ')'),
+        ListTile(leading: const Icon(Icons.select_all, color: Colors.cyan), title: Text('All hosts (${allSsh.length})'),
           onTap: () { Navigator.pop(context); _execute(context, name, cmd, allSsh, sudo: sudo); }),
         const Divider(color: Colors.white12),
         ...groups.map((g) {
           final gh = hp.hostsInGroup(g).where((h) => h.sshOpen).toList();
-          return ListTile(leading: const Icon(Icons.folder, color: Colors.orange, size: 20), title: Text('[' + g + '] (' + gh.length.toString() + ')'),
-            enabled: gh.isNotEmpty, onTap: gh.isEmpty ? null : () { Navigator.pop(context); _execute(context, name + ' [' + g + ']', cmd, gh, sudo: sudo); });
+          return ListTile(
+            leading: const Icon(Icons.folder, color: Colors.orange, size: 20),
+            title: Text('[$g] (${gh.length})'),
+            enabled: gh.isNotEmpty,
+            onTap: gh.isEmpty ? null : () { Navigator.pop(context); _execute(context, '$name [$g]', cmd, gh, sudo: sudo); },
+          );
         }),
       ]),
     ));
@@ -52,32 +56,61 @@ class ToolsScreen extends StatelessWidget {
     }();
   }
 
+  String _timeAgo(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inSeconds < 60) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: AppBar(title: const Text('Tools')), body: ListView(children: [
-      const SectionHeader(title: 'REMOTE'),
-      ActionCard(icon: Icons.terminal, title: 'Run Command', subtitle: 'Execute on all hosts', onTap: () => _cmdDialog(context)),
-      ActionCard(icon: Icons.lock_reset, title: 'Change Password', subtitle: 'All hosts', onTap: () => _passDialog(context)),
-      ActionCard(icon: Icons.message, title: 'Send Message', subtitle: 'Popup notification', onTap: () => _msgDialog(context)),
-      ActionCard(icon: Icons.lock, title: 'Lock Screens', subtitle: 'Instant lock', onTap: () => _run(context, 'Lock Screens', Commands.lockScreen())),
-      const SectionHeader(title: 'WAKE-ON-LAN'),
-      ActionCard(icon: Icons.wifi, title: 'Collect MAC Addresses', subtitle: 'From online hosts', onTap: () { context.read<HostProvider>().collectMacAddresses(); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Collecting MACs...'))); }),
-      ActionCard(icon: Icons.power, title: 'Wake All Hosts', subtitle: 'Send WOL magic packets', iconColor: Colors.green, onTap: () => _wol(context)),
-      ActionCard(icon: Icons.power_settings_new, title: 'Wake Single Host', subtitle: 'Select host to wake', iconColor: Colors.green, onTap: () => _wolSingle(context)),
-      const SectionHeader(title: 'FIX'),
-      ActionCard(icon: Icons.vpn_key, title: 'Delete SSH Keys', subtitle: 'Clean known_hosts', onTap: () => _run(context, 'Delete SSH Keys', Commands.deleteSSHKeys(), sudo: false)),
-      ActionCard(icon: Icons.speed, title: 'Fix Slow Sudo', subtitle: 'hostname in /etc/hosts', onTap: () => _run(context, 'Fix Slow Sudo', Commands.fixSlowSudo())),
-      const SectionHeader(title: 'HISTORY'),
-      Consumer<JobProvider>(builder: (context, jp, _) {
-        if (jp.history.isEmpty) return const Padding(padding: EdgeInsets.all(16), child: Text('No actions yet', style: TextStyle(color: Colors.white38)));
-        return Column(children: jp.history.take(20).map((j) => Card(child: ListTile(dense: true,
-          leading: Icon(j.failCount > 0 ? Icons.warning : Icons.check_circle, color: j.failCount > 0 ? Colors.orange : Colors.green, size: 18),
-          title: Text(j.name, style: const TextStyle(fontSize: 13)),
-          subtitle: Text('OK: ' + j.okCount.toString() + ' | Failed: ' + j.failCount.toString(), style: const TextStyle(fontSize: 11, color: Colors.white38)),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: j)))))).toList());
-      }),
-      const SizedBox(height: 80),
-    ]));
+    return Consumer<HostProvider>(builder: (context, hp, _) => Scaffold(
+      appBar: AppBar(title: const Text('Tools')),
+      body: ListView(children: [
+        const SectionHeader(title: 'REMOTE'),
+        ActionCard(icon: Icons.terminal, title: 'Run Command', subtitle: 'Execute on all hosts', onTap: () => _cmdDialog(context)),
+        ActionCard(icon: Icons.lock_reset, title: 'Change Password', subtitle: 'Updates all hosts + saved creds', onTap: () => _passDialog(context)),
+        ActionCard(icon: Icons.message, title: 'Send Message', subtitle: 'Desktop popup notification', onTap: () => _msgDialog(context)),
+        ActionCard(icon: Icons.lock, title: 'Lock Screens', subtitle: 'Instant lock', onTap: () => _run(context, 'Lock Screens', Commands.lockScreen())),
+        const SectionHeader(title: 'WAKE-ON-LAN'),
+        ActionCard(
+          icon: hp.isCollectingMacs ? Icons.hourglass_top : Icons.wifi,
+          title: 'Collect MAC Addresses',
+          subtitle: 'From online hosts (for WOL)',
+          onTap: hp.isCollectingMacs ? null : () {
+            hp.collectMacAddresses();
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Collecting MAC addresses…')));
+          },
+        ),
+        ActionCard(icon: Icons.power, title: 'Wake All Hosts', subtitle: 'Send WOL magic packets', iconColor: Colors.green, onTap: () => _wol(context)),
+        ActionCard(icon: Icons.power_settings_new, title: 'Wake Single Host', subtitle: 'Select host to wake', iconColor: Colors.green, onTap: () => _wolSingle(context)),
+        const SectionHeader(title: 'FIX'),
+        ActionCard(icon: Icons.vpn_key, title: 'Delete SSH Keys', subtitle: 'Clean ~/.ssh/known_hosts', onTap: () => _run(context, 'Delete SSH Keys', Commands.deleteSSHKeys(), sudo: false)),
+        ActionCard(icon: Icons.speed, title: 'Fix Slow Sudo', subtitle: 'Add hostname to /etc/hosts', onTap: () => _run(context, 'Fix Slow Sudo', Commands.fixSlowSudo())),
+        const SectionHeader(title: 'HISTORY'),
+        Consumer<JobProvider>(builder: (context, jp, _) {
+          if (jp.history.isEmpty) return const Padding(padding: EdgeInsets.all(16), child: Text('No actions yet', style: TextStyle(color: Colors.white38)));
+          return Column(children: [
+            ...jp.history.take(20).map((j) => Card(child: ListTile(
+              dense: true,
+              leading: Icon(j.failCount > 0 ? Icons.warning : Icons.check_circle, color: j.failCount > 0 ? Colors.orange : Colors.green, size: 18),
+              title: Text(j.name, style: const TextStyle(fontSize: 13)),
+              subtitle: Text('OK: ${j.okCount} | Failed: ${j.failCount}  •  ${_timeAgo(j.startTime)}', style: const TextStyle(fontSize: 11, color: Colors.white38)),
+              trailing: j.totalDuration != null ? Text('${j.totalDuration!.inSeconds}s', style: const TextStyle(fontSize: 11, color: Colors.white24)) : null,
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: j))),
+            ))),
+            Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: TextButton.icon(
+              icon: const Icon(Icons.delete_outline, size: 16),
+              label: const Text('Clear History'),
+              onPressed: () => jp.clearHistory(),
+            )),
+          ]);
+        }),
+        const SizedBox(height: 80),
+      ]),
+    ));
   }
 
   void _wol(BuildContext context) {
@@ -91,8 +124,8 @@ class ToolsScreen extends StatelessWidget {
     Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: job, totalHosts: hostsWithMac.length)));
     () async {
       for (final h in hostsWithMac) {
-        final r = await SSHService.runCommand(onlineHost.ip, creds, 'wakeonlan ' + h.mac! + ' 2>/dev/null || etherwake ' + h.mac! + ' 2>/dev/null; echo "WOL sent to ' + h.mac! + '"');
-        jp.addResult(job, SSHResult(host: h.ip, success: true, output: 'WOL sent to ' + (h.mac ?? ''), duration: r.duration));
+        final r = await SSHService.runCommand(onlineHost.ip, creds, 'wakeonlan ${h.mac!} 2>/dev/null || etherwake ${h.mac!} 2>/dev/null; echo "WOL sent to ${h.mac!}"');
+        jp.addResult(job, SSHResult(host: h.ip, success: true, output: 'WOL sent to ${h.mac ?? ''}', duration: r.duration));
       }
       jp.finishJob(job);
     }();
@@ -101,7 +134,7 @@ class ToolsScreen extends StatelessWidget {
   void _wolSingle(BuildContext context) {
     final hp = context.read<HostProvider>();
     final hostsWithMac = hp.hosts.where((h) => h.mac != null).toList();
-    if (hostsWithMac.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No MAC addresses.'))); return; }
+    if (hostsWithMac.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No MAC addresses. Collect them first.'))); return; }
     showDialog(context: context, builder: (_) => AlertDialog(
       backgroundColor: const Color(0xFF161B22), title: const Text('Wake Host'),
       content: SizedBox(width: double.maxFinite, height: 300, child: ListView.builder(
@@ -109,8 +142,8 @@ class ToolsScreen extends StatelessWidget {
         itemBuilder: (ctx, i) {
           final h = hostsWithMac[i];
           return ListTile(
-            title: Text(h.ip + ' (' + (h.hostname ?? '?') + ')', style: const TextStyle(fontSize: 14)),
-            subtitle: Text(h.mac ?? '', style: const TextStyle(fontSize: 11, color: Colors.white38)),
+            title: Text('${h.ip} (${h.hostname ?? '?'})', style: const TextStyle(fontSize: 14)),
+            subtitle: Text(h.mac ?? '', style: const TextStyle(fontSize: 11, color: Colors.white38, fontFamily: 'RobotoMono')),
             onTap: () { Navigator.pop(context); _sendWol(context, h); },
           );
         },
@@ -122,35 +155,82 @@ class ToolsScreen extends StatelessWidget {
     final hp = context.read<HostProvider>();
     final onlineHost = hp.hosts.firstWhere((h) => h.isOnline, orElse: () => hp.hosts.first);
     final creds = hp.credsForHost(onlineHost);
-    SSHService.runCommand(onlineHost.ip, creds, 'wakeonlan ' + target.mac! + ' 2>/dev/null || etherwake ' + target.mac! + ' 2>/dev/null').then((_) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('WOL sent to ' + target.ip)));
-    });
+    () async {
+      await SSHService.runCommand(onlineHost.ip, creds, 'wakeonlan ${target.mac!} 2>/dev/null || etherwake ${target.mac!} 2>/dev/null');
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('WOL sent to ${target.ip}')));
+    }();
   }
 
   void _cmdDialog(BuildContext ctx) {
     final c = TextEditingController();
-    showDialog(context: ctx, builder: (_) => AlertDialog(backgroundColor: const Color(0xFF161B22), title: const Text('Run Command'),
-      content: TextField(controller: c, decoration: const InputDecoration(labelText: 'Command (root)', border: OutlineInputBorder())),
-      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')), ElevatedButton(onPressed: () { Navigator.pop(ctx); _run(ctx, 'CMD: ' + c.text, c.text); }, child: const Text('Run'))]));
+    bool sudo = true;
+    showDialog(context: ctx, builder: (_) => StatefulBuilder(builder: (_, setState) => AlertDialog(
+      backgroundColor: const Color(0xFF161B22),
+      title: const Text('Run Command'),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: c, autofocus: true, decoration: const InputDecoration(labelText: 'Shell command', border: OutlineInputBorder()), style: const TextStyle(fontFamily: 'RobotoMono', fontSize: 13)),
+        const SizedBox(height: 4),
+        CheckboxListTile(title: const Text('Run as root (sudo)', style: TextStyle(fontSize: 14)), value: sudo, onChanged: (v) => setState(() => sudo = v!), contentPadding: EdgeInsets.zero),
+      ]),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+        ElevatedButton(onPressed: () {
+          if (c.text.trim().isEmpty) return;
+          Navigator.pop(ctx);
+          _run(ctx, 'CMD: ${c.text.trim()}', c.text.trim(), sudo: sudo);
+        }, child: const Text('Run')),
+      ],
+    )));
   }
 
   void _passDialog(BuildContext ctx) {
-    final c = TextEditingController();
-    showDialog(context: ctx, builder: (_) => AlertDialog(backgroundColor: const Color(0xFF161B22), title: const Text('Change Password'),
-      content: TextField(controller: c, obscureText: true, decoration: const InputDecoration(labelText: 'New password', border: OutlineInputBorder())),
-      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')), ElevatedButton(onPressed: () {
-        Navigator.pop(ctx); final hp = ctx.read<HostProvider>(); final user = hp.credentials?.username ?? 'user';
-        _run(ctx, 'Change Password', Commands.changePassword(user, c.text));
-        hp.saveCredentials(Credentials(username: user, password: c.text));
-      }, child: const Text('Change'))]));
+    final newPass = TextEditingController();
+    final confirmPass = TextEditingController();
+    showDialog(context: ctx, builder: (_) => AlertDialog(
+      backgroundColor: const Color(0xFF161B22),
+      title: const Text('Change Password'),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: newPass, obscureText: true, decoration: const InputDecoration(labelText: 'New password', border: OutlineInputBorder())),
+        const SizedBox(height: 12),
+        TextField(controller: confirmPass, obscureText: true, decoration: const InputDecoration(labelText: 'Confirm password', border: OutlineInputBorder())),
+      ]),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+        ElevatedButton(onPressed: () {
+          if (newPass.text.isEmpty) {
+            ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Password cannot be empty')));
+            return;
+          }
+          if (newPass.text != confirmPass.text) {
+            ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
+            return;
+          }
+          Navigator.pop(ctx);
+          final hp = ctx.read<HostProvider>();
+          final user = hp.credentials?.username ?? 'user';
+          _run(ctx, 'Change Password', Commands.changePassword(user, newPass.text));
+          hp.saveCredentials(Credentials(username: user, password: newPass.text));
+        }, child: const Text('Change')),
+      ],
+    ));
   }
 
   void _msgDialog(BuildContext ctx) {
-    final t = TextEditingController(text: 'Atomator'); final b = TextEditingController();
-    showDialog(context: ctx, builder: (_) => AlertDialog(backgroundColor: const Color(0xFF161B22), title: const Text('Send Message'),
+    final t = TextEditingController(text: 'Atomator');
+    final b = TextEditingController();
+    showDialog(context: ctx, builder: (_) => AlertDialog(
+      backgroundColor: const Color(0xFF161B22),
+      title: const Text('Send Message'),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(controller: t, decoration: const InputDecoration(labelText: 'Title', border: OutlineInputBorder())), const SizedBox(height: 12),
-        TextField(controller: b, decoration: const InputDecoration(labelText: 'Message', border: OutlineInputBorder()), maxLines: 3)]),
-      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')), ElevatedButton(onPressed: () { Navigator.pop(ctx); _run(ctx, 'Send Message', Commands.sendMessage(t.text, b.text), sudo: false); }, child: const Text('Send'))]));
+        TextField(controller: t, decoration: const InputDecoration(labelText: 'Title', border: OutlineInputBorder())),
+        const SizedBox(height: 12),
+        TextField(controller: b, decoration: const InputDecoration(labelText: 'Message', border: OutlineInputBorder()), maxLines: 3),
+      ]),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+        ElevatedButton(onPressed: () { Navigator.pop(ctx); _run(ctx, 'Send Message', Commands.sendMessage(t.text, b.text), sudo: false); }, child: const Text('Send')),
+      ],
+    ));
   }
 }

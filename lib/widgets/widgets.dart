@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/models.dart';
 
 class StatusBadge extends StatelessWidget {
@@ -17,16 +18,23 @@ class StatusBadge extends StatelessWidget {
 }
 
 class ActionCard extends StatelessWidget {
-  final IconData icon; final String title; final String subtitle; final VoidCallback onTap; final Color? iconColor;
-  const ActionCard({super.key, required this.icon, required this.title, required this.subtitle, required this.onTap, this.iconColor});
+  final IconData icon; final String title; final String subtitle; final VoidCallback? onTap; final Color? iconColor;
+  const ActionCard({super.key, required this.icon, required this.title, required this.subtitle, this.onTap, this.iconColor});
   @override
-  Widget build(BuildContext context) => Card(child: ListTile(leading: Icon(icon, color: iconColor ?? Theme.of(context).colorScheme.primary, size: 28), title: Text(title, style: Theme.of(context).textTheme.titleMedium), subtitle: Text(subtitle, style: Theme.of(context).textTheme.bodySmall), trailing: const Icon(Icons.chevron_right, color: Colors.white24), onTap: onTap));
+  Widget build(BuildContext context) => Card(child: ListTile(
+    leading: Icon(icon, color: onTap == null ? Colors.white24 : (iconColor ?? Theme.of(context).colorScheme.primary), size: 28),
+    title: Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: onTap == null ? Colors.white38 : null)),
+    subtitle: Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+    trailing: const Icon(Icons.chevron_right, color: Colors.white24),
+    onTap: onTap,
+  ));
 }
 
 class ResultsList extends StatelessWidget {
   final JobResult job;
   final int totalHosts;
   const ResultsList({super.key, required this.job, this.totalHosts = 0});
+
   @override
   Widget build(BuildContext context) {
     final total = totalHosts > 0 ? totalHosts : (job.isRunning ? job.results.length + 1 : job.total);
@@ -36,31 +44,36 @@ class ResultsList extends StatelessWidget {
         Padding(padding: const EdgeInsets.fromLTRB(16, 16, 16, 0), child: Row(children: [
           const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.cyan)),
           const SizedBox(width: 12),
-          Text('Running ' + job.results.length.toString() + (totalHosts > 0 ? '/' + totalHosts.toString() : '') + '...', style: const TextStyle(fontSize: 14)),
+          Text('Running ${job.results.length}${totalHosts > 0 ? '/$totalHosts' : ''}…', style: const TextStyle(fontSize: 14)),
           const Spacer(),
-          Text(job.okCount.toString() + ' OK', style: const TextStyle(fontSize: 12, color: Colors.green)),
-          if (job.failCount > 0) ...[const SizedBox(width: 8), Text(job.failCount.toString() + ' FAIL', style: const TextStyle(fontSize: 12, color: Colors.red))],
+          Text('${job.okCount} OK', style: const TextStyle(fontSize: 12, color: Colors.green)),
+          if (job.failCount > 0) ...[const SizedBox(width: 8), Text('${job.failCount} FAIL', style: const TextStyle(fontSize: 12, color: Colors.red))],
         ])),
         Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 8), child: ClipRRect(borderRadius: BorderRadius.circular(4), child: LinearProgressIndicator(value: progress, minHeight: 6, color: Colors.cyan, backgroundColor: Colors.white12))),
       ] else ...[
         Padding(padding: const EdgeInsets.all(16), child: Row(children: [
           Icon(job.failCount > 0 ? Icons.warning : Icons.check_circle, color: job.failCount > 0 ? Colors.orange : Colors.green, size: 24),
           const SizedBox(width: 12),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(job.failCount > 0 ? 'Completed with errors' : 'Completed successfully', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: job.failCount > 0 ? Colors.orange : Colors.green)),
-            Text('OK: ' + job.okCount.toString() + '  |  Failed: ' + job.failCount.toString() + '  |  Total: ' + job.total.toString(), style: const TextStyle(fontSize: 12, color: Colors.white38)),
-          ]),
+            Text('OK: ${job.okCount}  |  Failed: ${job.failCount}  |  Total: ${job.total}', style: const TextStyle(fontSize: 12, color: Colors.white38)),
+          ])),
+          if (job.totalDuration != null) Text('${job.totalDuration!.inSeconds}s', style: const TextStyle(fontSize: 12, color: Colors.white38)),
         ])),
       ],
       const Divider(height: 1, color: Colors.white12),
       Expanded(child: ListView.builder(itemCount: job.results.length, itemBuilder: (context, i) {
         final r = job.results[i];
-        return ListTile(dense: true,
+        return ListTile(
+          dense: true,
           leading: Icon(r.success ? Icons.check_circle : Icons.error, color: r.success ? Colors.green : Colors.red, size: 18),
           title: Text(r.host, style: const TextStyle(fontFamily: 'RobotoMono', fontSize: 13)),
-          subtitle: Text(r.output.length > 100 ? r.output.substring(0, 100) + '...' : r.output, style: const TextStyle(fontSize: 11, color: Colors.white38)),
-          trailing: Text(r.duration.inMilliseconds.toString() + 'ms', style: const TextStyle(fontSize: 11, color: Colors.white24)),
-          onTap: r.output.length > 100 ? () => _showFull(context, r) : null,
+          subtitle: Text(
+            r.output.isEmpty ? '(no output)' : (r.output.length > 100 ? '${r.output.substring(0, 100)}…' : r.output),
+            style: const TextStyle(fontSize: 11, color: Colors.white38),
+          ),
+          trailing: Text('${r.duration.inMilliseconds}ms', style: const TextStyle(fontSize: 11, color: Colors.white24)),
+          onTap: () => _showFull(context, r),
         );
       })),
     ]);
@@ -69,9 +82,35 @@ class ResultsList extends StatelessWidget {
   static void _showFull(BuildContext context, SSHResult r) {
     showDialog(context: context, builder: (_) => AlertDialog(
       backgroundColor: const Color(0xFF161B22),
-      title: Text(r.host, style: const TextStyle(fontFamily: 'RobotoMono', fontSize: 14)),
-      content: SingleChildScrollView(child: SelectableText(r.output, style: const TextStyle(fontFamily: 'monospace', fontSize: 12, color: Colors.white70))),
-      actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
+      titlePadding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      contentPadding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      title: Row(children: [
+        Icon(r.success ? Icons.check_circle : Icons.error, color: r.success ? Colors.green : Colors.red, size: 16),
+        const SizedBox(width: 8),
+        Expanded(child: Text(r.host, style: const TextStyle(fontFamily: 'RobotoMono', fontSize: 14))),
+        Text('${r.duration.inMilliseconds}ms', style: const TextStyle(fontSize: 11, color: Colors.white38, fontWeight: FontWeight.normal)),
+      ]),
+      content: Container(
+        constraints: const BoxConstraints(maxHeight: 400),
+        child: SingleChildScrollView(
+          child: SelectableText(
+            r.output.isEmpty ? '(no output)' : r.output,
+            style: const TextStyle(fontFamily: 'RobotoMono', fontSize: 12, color: Colors.white70, height: 1.5),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton.icon(
+          icon: const Icon(Icons.copy, size: 16),
+          label: const Text('Copy'),
+          onPressed: () {
+            Clipboard.setData(ClipboardData(text: r.output));
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copied to clipboard'), duration: Duration(seconds: 1)));
+          },
+        ),
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+      ],
     ));
   }
 }
@@ -80,5 +119,8 @@ class SectionHeader extends StatelessWidget {
   final String title;
   const SectionHeader({super.key, required this.title});
   @override
-  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.fromLTRB(16, 16, 16, 4), child: Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary, letterSpacing: 1.2)));
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+    child: Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary, letterSpacing: 1.2)),
+  );
 }
