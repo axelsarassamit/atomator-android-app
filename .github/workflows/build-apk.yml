@@ -16,23 +16,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # full history for automatic release notes
+          fetch-depth: 0  # full history needed for tag annotation extraction
 
-      # ── Resolve version ────────────────────────────────────────────────────
-      - name: Get version
+      # ── Resolve version & release info ─────────────────────────────────────
+      - name: Get version and release info
         id: version
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             VER="${GITHUB_REF#refs/tags/v}"
-            echo "version=$VER"          >> $GITHUB_OUTPUT
+            echo "version=$VER"               >> $GITHUB_OUTPUT
             echo "apk_name=atomator-$VER.apk" >> $GITHUB_OUTPUT
-            echo "is_release=true"       >> $GITHUB_OUTPUT
+            echo "is_release=true"            >> $GITHUB_OUTPUT
           else
             SHA=$(echo "$GITHUB_SHA" | cut -c1-7)
-            echo "version=dev-$SHA"      >> $GITHUB_OUTPUT
-            echo "apk_name=atomator-dev-$SHA.apk" >> $GITHUB_OUTPUT
-            echo "is_release=false"      >> $GITHUB_OUTPUT
+            echo "version=dev-$SHA"                 >> $GITHUB_OUTPUT
+            echo "apk_name=atomator-dev-$SHA.apk"   >> $GITHUB_OUTPUT
+            echo "is_release=false"                 >> $GITHUB_OUTPUT
           fi
+
+      # ── Parse tag annotation for release title + body ──────────────────────
+      # Convention: first line of annotation = short description (used in title)
+      #             everything after the first blank line = release body (markdown)
+      - name: Extract release notes from tag annotation
+        if: startsWith(github.ref, 'refs/tags/')
+        id: relnotes
+        run: |
+          TAG_FULL=$(git tag -l --format='%(contents)' "${{ github.ref_name }}")
+          SHORT_DESC=$(printf '%s' "$TAG_FULL" | head -1)
+          echo "short_desc=$SHORT_DESC" >> "$GITHUB_OUTPUT"
+          {
+            echo 'body<<ENDOFBODY'
+            printf '%s' "$TAG_FULL" | tail -n +3
+            echo ''
+            echo 'ENDOFBODY'
+          } >> "$GITHUB_OUTPUT"
 
       # ── Toolchain ──────────────────────────────────────────────────────────
       - uses: actions/setup-java@v4
@@ -49,11 +66,11 @@ jobs:
       # ── Project scaffold ───────────────────────────────────────────────────
       - name: Backup source files
         run: |
-          cp -r lib          lib_bak
-          cp -r assets       assets_bak
-          cp    pubspec.yaml pubspec_bak.yaml
-          cp -r scripts      scripts_bak
-          cp -r android_manifest android_manifest_bak
+          cp -r lib               lib_bak
+          cp -r assets            assets_bak
+          cp    pubspec.yaml      pubspec_bak.yaml
+          cp -r scripts           scripts_bak
+          cp -r android_manifest  android_manifest_bak
 
       - name: Scaffold clean Flutter project
         run: |
@@ -63,10 +80,10 @@ jobs:
       - name: Restore source files
         run: |
           rm -rf lib assets pubspec.yaml scripts android_manifest
-          mv lib_bak          lib
-          mv assets_bak       assets
-          mv pubspec_bak.yaml pubspec.yaml
-          mv scripts_bak      scripts
+          mv lib_bak              lib
+          mv assets_bak           assets
+          mv pubspec_bak.yaml     pubspec.yaml
+          mv scripts_bak          scripts
           mv android_manifest_bak android_manifest
 
       # ── Android config & signing ───────────────────────────────────────────
@@ -102,14 +119,16 @@ jobs:
           retention-days: 30
 
       # ── GitHub Release (tag pushes only) ───────────────────────────────────
+      # Title format:  Atomator Mobile {version} — {short description}
+      # Body sourced from the annotated tag message (after the first blank line)
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          name: "Atomator Mobile v${{ steps.version.outputs.version }}"
+          name: "Atomator Mobile ${{ steps.version.outputs.version }} — ${{ steps.relnotes.outputs.short_desc }}"
+          body: ${{ steps.relnotes.outputs.body }}
           tag_name: ${{ github.ref_name }}
           files: ${{ steps.version.outputs.apk_name }}
-          generate_release_notes: true
           draft: false
           prerelease: false
           fail_on_unmatched_files: true
