@@ -4,7 +4,7 @@
 
 **Manage your entire Linux fleet from your Android phone.**
 
-Direct SSH • 44+ Commands • Built-in Terminal • Wake-on-LAN • Fleet Dashboard
+Direct SSH • 45+ Commands • Built-in Terminal • Wake-on-LAN • Fleet Dashboard
 
 [![Latest Release](https://img.shields.io/github/v/release/axelsarassamit/atomator-android-app?color=cyan&label=Latest)](https://github.com/axelsarassamit/atomator-android-app/releases)
 [![Downloads](https://img.shields.io/github/downloads/axelsarassamit/atomator-android-app/total?color=green&label=Downloads)](https://github.com/axelsarassamit/atomator-android-app/releases)
@@ -28,16 +28,18 @@ Whether you manage 5 machines or 500, Atomator lets you update, monitor, and con
 
 | Feature | Description |
 |---------|-------------|
-| 📊 **Fleet Dashboard** | See online/offline/SSH status, RAM, disk warnings at a glance |
+| 📊 **Fleet Dashboard** | Active-job banner, online/offline/SSH status, RAM, disk warnings at a glance |
 | 📟 **SSH Terminal** | Full interactive shell — pick a host, type commands |
 | 🎯 **Group Targeting** | Run actions on ALL hosts or just a specific group |
-| 🔄 **44+ Commands** | Updates, cleanup, software, network, info — one tap |
-| 📈 **Live Progress** | Progress bar with OK/FAIL count on every action |
+| 🔄 **45+ Commands** | Updates, cleanup, DNS change, software, network, info — one tap |
+| 📈 **Live Progress** | Progress bar with OK/FAIL count and duration on every action |
 | 🔍 **Smart Detection** | Auto-resolves hostname via SSH, DNS, or MAC vendor |
 | 📡 **Wake-on-LAN** | Power on machines remotely |
 | 💬 **Send Messages** | Push popups to all desktops |
 | 🔒 **Lock Screens** | One tap, every screen locked |
 | 👤 **Per-Host Credentials** | Different user/password for each device |
+| 🌐 **DNS Management** | Change DNS servers on all hosts in one tap |
+| 📋 **Job History** | Full history with duration, OK/fail counts, copy output |
 | 🔄 **In-App Updates** | Download new versions or roll back — from within the app |
 | 🛡️ **Encrypted Storage** | Credentials stored securely on device |
 
@@ -90,10 +92,11 @@ Whether you manage 5 machines or 500, Atomator lets you update, monitor, and con
 ## Release History
 
 <details>
-<summary>Click to expand (34 releases)</summary>
+<summary>Click to expand (35 releases)</summary>
 
 | Version | Changes |
 |---------|---------|
+| v1.5.0 | **Job tracking** (duration, active banner), **DNS change** dialog, password confirm, sudo toggle, copy output, empty-state screens, last-seen times, lint clean |
 | v1.4.6 | Fix send message shell syntax |
 | v1.4.5 | Fix send message: runs as SSH user |
 | v1.4.4 | Fix send message: wall + zenity + notify-send |
