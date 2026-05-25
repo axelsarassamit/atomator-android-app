@@ -40,8 +40,8 @@ class _BugReportScreenState extends State<BugReportScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Report a Problem')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      body: SafeArea(top: false, child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           if (!_sent) ...[
             const Text('Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
@@ -101,7 +101,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
             Center(child: OutlinedButton(onPressed: () => setState(() { _sent = false; _titleCtrl.clear(); _descCtrl.clear(); }), child: const Text('Report Another Issue'))),
           ],
         ]),
-      ),
+      )),   // closes SingleChildScrollView + SafeArea
     );
   }
 

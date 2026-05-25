@@ -43,7 +43,7 @@ class JobScreen extends StatelessWidget {
           )),
         ],
       ),
-      body: Consumer<JobProvider>(builder: (context, jp, _) => ResultsList(job: job, totalHosts: totalHosts)),
+      body: SafeArea(top: false, child: Consumer<JobProvider>(builder: (context, jp, _) => ResultsList(job: job, totalHosts: totalHosts))),
     );
   }
 }
