@@ -47,4 +47,16 @@ class Commands {
   static String enableCompositing() => 'DISPLAY=:0 xfconf-query -c xfwm4 -p /general/use_compositing -s true 2>/dev/null && echo COMPOSITING ENABLED || echo Not Xfce or display unavailable';
   static String disableBluetooth() => 'systemctl stop bluetooth 2>/dev/null; systemctl disable bluetooth 2>/dev/null; rfkill block bluetooth 2>/dev/null; echo BLUETOOTH DISABLED';
   static String enableBluetooth() => 'rfkill unblock bluetooth 2>/dev/null; systemctl enable bluetooth 2>/dev/null; systemctl start bluetooth 2>/dev/null; echo BLUETOOTH ENABLED';
+  static String setCpuSchedulutil() => 'for gov in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo schedutil > \$gov 2>/dev/null; done; echo Governor: \$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null || echo N/A)';
+  static String disableCups() => 'systemctl stop cups 2>/dev/null; systemctl disable cups 2>/dev/null; echo CUPS DISABLED';
+  static String enableCups() => 'systemctl enable cups 2>/dev/null; systemctl start cups 2>/dev/null; echo CUPS ENABLED';
+  static String disableAvahi() => 'systemctl stop avahi-daemon 2>/dev/null; systemctl disable avahi-daemon 2>/dev/null; echo AVAHI DISABLED';
+  static String enableAvahi() => 'systemctl enable avahi-daemon 2>/dev/null; systemctl start avahi-daemon 2>/dev/null; echo AVAHI ENABLED';
+  static String disableThp() => 'echo never > /sys/kernel/mm/transparent_hugepage/enabled 2>/dev/null; echo THP: \$(cat /sys/kernel/mm/transparent_hugepage/enabled 2>/dev/null || echo N/A)';
+  static String setThpMadvise() => 'echo madvise > /sys/kernel/mm/transparent_hugepage/enabled 2>/dev/null; echo THP: \$(cat /sys/kernel/mm/transparent_hugepage/enabled 2>/dev/null || echo N/A)';
+  static String disablePlymouth() => 'sed -i \'s/GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/\' /etc/default/grub 2>/dev/null && update-grub 2>/dev/null && echo PLYMOUTH DISABLED || echo GRUB NOT FOUND';
+  static String enablePlymouth() => 'sed -i \'s/GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"/\' /etc/default/grub 2>/dev/null && update-grub 2>/dev/null && echo PLYMOUTH ENABLED || echo GRUB NOT FOUND';
+  static String trimSsd() => 'fstrim -av 2>/dev/null && echo TRIM DONE || echo fstrim FAILED';
+  static String setIoSchedulerBfq() => 'for q in /sys/block/*/queue/scheduler; do echo bfq > \$q 2>/dev/null; done; for dev in /sys/block/*/queue/scheduler; do echo "\$(basename \$(dirname \$(dirname \$dev))): \$(cat \$dev 2>/dev/null)"; done';
+  static String setIoSchedulerDeadline() => 'for q in /sys/block/*/queue/scheduler; do echo mq-deadline > \$q 2>/dev/null; done; for dev in /sys/block/*/queue/scheduler; do echo "\$(basename \$(dirname \$(dirname \$dev))): \$(cat \$dev 2>/dev/null)"; done';
 }

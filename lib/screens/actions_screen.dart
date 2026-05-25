@@ -126,6 +126,8 @@ class ActionsScreen extends StatelessWidget {
 
   void _appDialog(BuildContext ctx) {
     final apps = <_AppDef>[
+      _AppDef('Firefox',     'Web browser (ESR)',        Icons.web,                  Colors.orange,     Commands.installFirefox(),                        Commands.removeFirefox()),
+      _AppDef('Chrome',      'Google Chrome browser',    Icons.public,               Colors.blue,       Commands.installChrome(),                         Commands.removeChrome()),
       _AppDef('VLC',         'Universal media player',   Icons.play_circle_outline,  Colors.orange,     Commands.installPackage('vlc'),                   Commands.removePackage('vlc')),
       _AppDef('GIMP',        'Photo & image editor',     Icons.brush,                Colors.purple,     Commands.installPackage('gimp'),                  Commands.removePackage('gimp')),
       _AppDef('LibreOffice', 'Office suite',             Icons.description,          Colors.cyan,       Commands.installPackage('libreoffice'),            Commands.removePackage('libreoffice')),
@@ -144,7 +146,7 @@ class ActionsScreen extends StatelessWidget {
       contentPadding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
       content: SizedBox(
         width: double.maxFinite,
-        height: 520,
+        height: 580,
         child: ListView.builder(
           itemCount: apps.length,
           itemBuilder: (_, i) {
@@ -204,6 +206,103 @@ class ActionsScreen extends StatelessWidget {
     ));
   }
 
+  void _perfDialog(BuildContext ctx) {
+    showDialog(context: ctx, builder: (dCtx) {
+      void go(String name, String cmd, {bool sudo = true}) {
+        Navigator.pop(dCtx);
+        _run(ctx, name, cmd, sudo: sudo);
+      }
+      Widget btn(String label, Color col, VoidCallback onTap) => OutlinedButton(
+        onPressed: onTap,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: col,
+          side: BorderSide(color: col),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          minimumSize: const Size(0, 26),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          textStyle: const TextStyle(fontSize: 11),
+        ),
+        child: Text(label),
+      );
+      Widget row(String title, String sub, IconData icon, List<Widget> btns) => Card(
+        margin: const EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+        child: Padding(padding: const EdgeInsets.fromLTRB(10, 8, 8, 8), child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(icon, size: 16, color: Colors.white54),
+              const SizedBox(width: 8),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(sub, style: const TextStyle(fontSize: 11, color: Colors.white38)),
+              ])),
+            ]),
+            const SizedBox(height: 6),
+            Wrap(spacing: 4, runSpacing: 4, children: btns),
+          ],
+        )),
+      );
+      return AlertDialog(
+        backgroundColor: const Color(0xFF161B22),
+        title: const Text('Performance Settings'),
+        contentPadding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 520,
+          child: ListView(children: [
+            row('CPU Governor', 'Frequency scaling policy', Icons.bolt, [
+              btn('Powersave', Colors.orange, () => go('CPU Powersave', Commands.setCpuPowersave())),
+              btn('Balanced', Colors.amber, () => go('CPU Balanced', Commands.setCpuSchedulutil())),
+              btn('Performance', Colors.green, () => go('CPU Performance', Commands.setCpuPerformance())),
+            ]),
+            row('Desktop Compositing', 'Xfce desktop effects', Icons.desktop_windows, [
+              btn('Disable', Colors.orange, () => go('Disable Compositing', Commands.disableCompositing())),
+              btn('Enable', Colors.green, () => go('Enable Compositing', Commands.enableCompositing())),
+            ]),
+            row('Bluetooth', 'BT service / rfkill', Icons.bluetooth, [
+              btn('Disable', Colors.orange, () => go('Disable Bluetooth', Commands.disableBluetooth())),
+              btn('Enable', Colors.blue, () => go('Enable Bluetooth', Commands.enableBluetooth())),
+            ]),
+            row('CUPS Printing', 'Print service', Icons.print, [
+              btn('Disable', Colors.orange, () => go('Disable CUPS', Commands.disableCups())),
+              btn('Enable', Colors.green, () => go('Enable CUPS', Commands.enableCups())),
+            ]),
+            row('Avahi / mDNS', 'Local network discovery', Icons.wifi, [
+              btn('Disable', Colors.orange, () => go('Disable Avahi', Commands.disableAvahi())),
+              btn('Enable', Colors.green, () => go('Enable Avahi', Commands.enableAvahi())),
+            ]),
+            row('Transparent Huge Pages', 'Kernel memory allocation', Icons.memory, [
+              btn('Disable', Colors.orange, () => go('Disable THP', Commands.disableThp())),
+              btn('madvise', Colors.cyan, () => go('THP: madvise', Commands.setThpMadvise())),
+            ]),
+            row('I/O Scheduler', 'Block device I/O policy', Icons.storage, [
+              btn('BFQ', Colors.purple, () => go('I/O: BFQ', Commands.setIoSchedulerBfq())),
+              btn('mq-deadline', Colors.teal, () => go('I/O: mq-deadline', Commands.setIoSchedulerDeadline())),
+            ]),
+            row('Plymouth Splash', 'Boot splash screen (GRUB)', Icons.computer, [
+              btn('Disable', Colors.orange, () => go('Disable Plymouth', Commands.disablePlymouth())),
+              btn('Enable', Colors.green, () => go('Enable Plymouth', Commands.enablePlymouth())),
+            ]),
+            row('SSD TRIM', 'fstrim all mounted SSDs', Icons.cleaning_services, [
+              btn('Run TRIM', Colors.cyan, () => go('SSD TRIM', Commands.trimSsd())),
+            ]),
+            row('Swappiness', 'Swap usage tendency', Icons.tune, [
+              btn('Adjust...', Colors.cyan, () { Navigator.pop(dCtx); _swappinessDialog(ctx); }),
+            ]),
+            row('RAM Cache', 'Flush page cache & dentries', Icons.memory, [
+              btn('Clear', Colors.cyan, () => go('Clear RAM Cache', Commands.clearRamCache())),
+            ]),
+            row('Temperatures', 'CPU zones + lm-sensors', Icons.thermostat, [
+              btn('Check', Colors.cyan, () => go('Temperatures', Commands.checkTemperatures(), sudo: false)),
+            ]),
+            const SizedBox(height: 8),
+          ]),
+        ),
+        actions: [TextButton(onPressed: () => Navigator.pop(dCtx), child: const Text('Close'))],
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(appBar: AppBar(title: const Text('Actions')), body: ListView(children: [
@@ -239,23 +338,11 @@ class ActionsScreen extends StatelessWidget {
       // ── SOFTWARE ───────────────────────────────────────────────────────────
       const SectionHeader(title: 'SOFTWARE'),
       ActionCard(icon: Icons.install_desktop, title: 'Install Package', subtitle: 'Any apt package', onTap: () => _pkgDialog(context)),
-      ActionCard(icon: Icons.apps, title: 'Install Applications', subtitle: '10 popular apps — install or remove', iconColor: Colors.cyan, onTap: () => _appDialog(context)),
-      ActionCard(icon: Icons.web, title: 'Install Firefox', subtitle: 'ESR browser', onTap: () => _run(context, 'Install Firefox', Commands.installFirefox())),
-      ActionCard(icon: Icons.web, title: 'Install Chrome', subtitle: 'Google Chrome', onTap: () => _run(context, 'Install Chrome', Commands.installChrome())),
-      ActionCard(icon: Icons.delete, title: 'Remove Firefox', subtitle: 'Uninstall', iconColor: Colors.red, onTap: () => _run(context, 'Remove Firefox', Commands.removeFirefox())),
-      ActionCard(icon: Icons.delete, title: 'Remove Chrome', subtitle: 'Uninstall', iconColor: Colors.red, onTap: () => _run(context, 'Remove Chrome', Commands.removeChrome())),
+      ActionCard(icon: Icons.apps, title: 'Install Applications', subtitle: '12 popular apps — install or remove', iconColor: Colors.cyan, onTap: () => _appDialog(context)),
 
       // ── PERFORMANCE ────────────────────────────────────────────────────────
       const SectionHeader(title: 'PERFORMANCE'),
-      ActionCard(icon: Icons.memory, title: 'Clear RAM Cache', subtitle: 'Flush page cache & dentries', onTap: () => _run(context, 'Clear RAM Cache', Commands.clearRamCache())),
-      ActionCard(icon: Icons.bolt, title: 'CPU: Performance Mode', subtitle: 'Set scaling governor to performance', iconColor: Colors.green, onTap: () => _run(context, 'CPU Performance Mode', Commands.setCpuPerformance())),
-      ActionCard(icon: Icons.battery_saver, title: 'CPU: Powersave Mode', subtitle: 'Set scaling governor to powersave', iconColor: Colors.green, onTap: () => _run(context, 'CPU Powersave Mode', Commands.setCpuPowersave())),
-      ActionCard(icon: Icons.tune, title: 'Set Swappiness', subtitle: 'Reduce swap usage (desktop-optimized)', onTap: () => _swappinessDialog(context)),
-      ActionCard(icon: Icons.thermostat, title: 'Check Temperatures', subtitle: 'CPU thermal zones + lm-sensors', onTap: () => _run(context, 'Temperatures', Commands.checkTemperatures(), sudo: false)),
-      ActionCard(icon: Icons.desktop_windows, title: 'Disable Compositing', subtitle: 'Turn off Xfce desktop effects', iconColor: Colors.orange, onTap: () => _run(context, 'Disable Compositing', Commands.disableCompositing())),
-      ActionCard(icon: Icons.desktop_windows, title: 'Enable Compositing', subtitle: 'Turn on Xfce desktop effects', iconColor: Colors.green, onTap: () => _run(context, 'Enable Compositing', Commands.enableCompositing())),
-      ActionCard(icon: Icons.bluetooth_disabled, title: 'Disable Bluetooth', subtitle: 'Stop & disable BT service', iconColor: Colors.orange, onTap: () => _run(context, 'Disable Bluetooth', Commands.disableBluetooth())),
-      ActionCard(icon: Icons.bluetooth, title: 'Enable Bluetooth', subtitle: 'Start & enable BT service', iconColor: Colors.blue, onTap: () => _run(context, 'Enable Bluetooth', Commands.enableBluetooth())),
+      ActionCard(icon: Icons.tune, title: 'Performance Settings', subtitle: 'CPU, I/O, compositing, services and more', iconColor: Colors.purple, onTap: () => _perfDialog(context)),
 
       const SizedBox(height: 80),
     ]));
