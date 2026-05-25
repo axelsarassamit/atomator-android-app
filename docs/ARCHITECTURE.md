@@ -24,7 +24,7 @@ lib/
   services/
     ssh_service.dart                 SSH connection + parallel execution
     storage_service.dart             Encrypted credential + host storage
-    command_service.dart             All 44+ commands as static methods
+    command_service.dart             All 55+ commands as static methods
     update_service.dart              GitHub API version check + download
   providers/
     host_provider.dart               Host state, check status, groups
@@ -61,10 +61,19 @@ assets/images/
 
 ## How Commands Work
 
-1. User taps an action
+1. User taps an action (or opens Install Applications / Performance Settings sub-menu)
 2. Group selector shows (if multiple groups)
 3. App filters hosts: `sshOpen == true` in selected group
 4. For each host: `SSHService.runCommand(host, creds, cmd)`
-5. Each result updates the UI live (via `JobProvider.addResult`)
-6. Progress bar shows X/total with OK/FAIL count
-7. Completion summary when done
+5. SSH approach: `echo "pass" | sudo -S bash -c "cmd"` via `client.run()` (dartssh2)
+6. Each result updates the UI live (via `JobProvider.addResult`)
+7. Progress bar shows X/total with OK/FAIL count
+8. Completion summary when done
+
+## SSH Implementation Note
+
+All SSH commands use `SSHClient.run()` (dartssh2 convenience method) with the pattern:
+```
+echo "<password>" | sudo -S bash -c "<command>"
+```
+This is the confirmed-working approach since v1.4.6. Do not use `SSHClient.execute()` or stdin injection — these approaches break sudo handling in dartssh2.

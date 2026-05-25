@@ -90,8 +90,28 @@ All remote commands organized by category. When you tap an action:
 
 **Software:**
 - Install Package — enter any apt package name
-- Install/Remove Firefox — tries firefox, firefox-esr, and snap
-- Install/Remove Chrome
+
+**Install Applications:**
+Opens a 12-app catalog. Tap **Install** or **Remove** next to any app:
+- Firefox, Chrome, VLC, GIMP, VS Code, Discord, Zoom, Spotify, Telegram, Steam, LibreOffice, OBS
+
+**Performance Settings:**
+Opens a sub-menu with enable/disable controls for every performance-related setting:
+
+| Setting | Options |
+|---------|---------|
+| CPU Governor | Powersave / Balanced (schedutil) / Performance |
+| Desktop Compositing | Disable / Enable (Xfce) |
+| Bluetooth | Disable / Enable (service + rfkill) |
+| CUPS Printing | Disable / Enable |
+| Avahi / mDNS | Disable / Enable (local network discovery) |
+| Transparent Huge Pages | Disable / madvise |
+| I/O Scheduler | BFQ / mq-deadline |
+| Plymouth Boot Splash | Disable / Enable (edits GRUB) |
+| SSD TRIM | Run fstrim on all mounted SSDs |
+| Swappiness | Adjust slider (0–100) |
+| RAM Cache | Flush page cache and dentries |
+| Temperatures | Read CPU thermal zones + lm-sensors |
 
 ### SSH (Terminal)
 Built-in interactive SSH terminal.
@@ -136,7 +156,7 @@ App settings and tools.
 - **Check for Updates** — download new versions or roll back to previous
   - **Latest tab** — checks for new version, shows release notes
   - **All Versions tab** — browse and install any previous version
-- **Debug / Network Test** — test internet, local network, SSH, ping, file access
+- **Debug / Network Test** — auto-detects your WiFi/LAN gateway, shows real app version; runs internet, DNS, HTTP, SSH, ping, subnet scan, and file-system tests
 - **User Manual** — this guide
 - **Report a Problem** — bug reports and feature requests
 - **About Atomator** — version, creator, GitHub links

@@ -43,3 +43,22 @@ A: Use Actions > Maintenance > Fix dpkg. This runs automatically before installs
 
 **Q: Send message doesn't show on desktop**
 A: Requires `notify-send` or `zenity` on the host. The SSH user must be the same user logged into the desktop.
+
+## App Installer
+
+**Q: Firefox install fails**
+A: The installer tries `firefox`, `firefox-esr`, and `snap install firefox` in sequence — one of these covers Ubuntu, Debian, and snap-based systems.
+
+**Q: An app in the catalog isn't available on my distro**
+A: The catalog targets Debian/Ubuntu. Snap-packaged apps (Firefox, Chrome, Spotify, Discord) work on any distro with snapd installed.
+
+## Performance Settings
+
+**Q: CPU governor change doesn't survive reboot**
+A: CPU governor is set per-boot via sysfs. To make it persistent, install `cpufrequtils` and set it there, or add a systemd service.
+
+**Q: Plymouth disable — why does it rebuild GRUB?**
+A: Plymouth is configured in GRUB's `GRUB_CMDLINE_LINUX_DEFAULT`. The command edits `/etc/default/grub` and runs `update-grub`. The change takes effect on next boot.
+
+**Q: I/O scheduler changes don't show on all disks**
+A: NVMe drives use a different scheduler queue. The command targets all `/sys/block/*/queue/scheduler` entries — disks that don't support the chosen scheduler are silently skipped.
