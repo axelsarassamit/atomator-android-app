@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dartssh2/dartssh2.dart';
-import 'dart:convert';
+import 'dart:convert'; // utf8
 import '../providers/host_provider.dart';
 import '../models/models.dart';
 
@@ -86,22 +86,25 @@ class _TerminalScreenState extends State<TerminalScreen> {
       final hp = context.read<HostProvider>();
       final creds = hp.credsForHost(_selectedHost!);
 
-      // Run the command as typed. For sudo commands, strip the 'sudo ' prefix
-      // and re-execute via sudo -S with the password injected through stdin.
-      // Base64-encode the inner command so all special characters (quotes,
-      // dollar signs, backticks) survive the shell wrapping intact.
-      final String fullCmd;
-      if (cmd.startsWith('sudo ')) {
-        final innerCmd = cmd.substring(5);
-        final b64 = base64Encode(utf8.encode(innerCmd));
-        final pass = creds.password.replaceAll("'", "'\\''");
-        fullCmd = "printf '%s\\n' '$pass' | sudo -S bash -c 'echo $b64 | base64 -d | bash' 2>&1";
-      } else {
-        fullCmd = '$cmd 2>&1';
-      }
+      // Run all commands via sudo so the terminal works like a root shell —
+      // the user can type plain commands without prefixing sudo every time.
+      // Password is injected on stdin line 1; bash -s reads the command from
+      // stdin line 2, avoiding all shell-quoting issues.
+      final session = await _client!.execute('sudo -S bash -s');
+      session.stdin.add(utf8.encode('${creds.password}\n$cmd\n'));
+      await session.stdin.close();
 
-      final result = await _client!.run(fullCmd);
-      final output = utf8.decode(result, allowMalformed: true).trim();
+      final stdoutBuf = <int>[];
+      final stderrBuf = <int>[];
+      await Future.wait([
+        session.stdout.forEach((chunk) => stdoutBuf.addAll(chunk)),
+        session.stderr.forEach((chunk) => stderrBuf.addAll(chunk)),
+      ]);
+      await session.done;
+
+      final out = utf8.decode(stdoutBuf, allowMalformed: true).trim();
+      final err = utf8.decode(stderrBuf, allowMalformed: true).trim();
+      final output = out.isNotEmpty ? out : err;
       if (output.isNotEmpty) {
         for (final line in output.split('\n')) {
           _addOutput(line);

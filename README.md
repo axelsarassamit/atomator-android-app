@@ -94,10 +94,11 @@ Whether you manage 5 machines or 500, Atomator lets you update, monitor, and con
 ## Release History
 
 <details>
-<summary>Click to expand (38 releases)</summary>
+<summary>Click to expand (39 releases)</summary>
 
 | Version | Changes |
 |---------|---------|
+| v1.6.3 | **SSH fix**: rewritten sudo handling using stdin injection — password and command sent directly over the SSH channel, no shell quoting issues; stderr now captured and shown in job output |
 | v1.6.2 | **UI fix**: buttons and content no longer hidden behind Android system navigation bar on edge-to-edge devices; release notes strip tooling attribution lines |
 | v1.6.1 | **SSH hotfix**: robust sudo wrapper using base64 encoding — fixes SSH commands broken by special characters (quotes, `$`, backticks) in passwords or commands |
 | v1.6.0 | **App installer** (10-app catalog with install/remove), **Performance section** (CPU governor, RAM cache, swappiness, temperatures, compositing, Bluetooth) |
