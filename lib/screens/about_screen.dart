@@ -9,8 +9,8 @@ class AboutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('About Atomator')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+      body: SafeArea(top: false, child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
         child: Column(
           children: [
             Image.asset('assets/images/atomator_banner.png', height: 100),
@@ -33,7 +33,7 @@ class AboutScreen extends StatelessWidget {
             const Text('Built with Flutter + dartssh2', style: TextStyle(fontSize: 12, color: Colors.white24)),
           ],
         ),
-      ),
+      )),   // closes SingleChildScrollView + SafeArea
     );
   }
 

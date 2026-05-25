@@ -7,7 +7,7 @@ class ManualScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('User Manual')),
-      body: ListView(padding: const EdgeInsets.all(16), children: const [
+      body: SafeArea(top: false, child: ListView(padding: const EdgeInsets.all(16), children: const [
         _Section('Getting Started'),
         _Item('1. Set Credentials', 'Go to Config tab and set your SSH username and password'),
         _Item('2. Add Hosts', 'Go to Hosts tab, tap +, enter IP or range like 192.168.0.50-199'),
@@ -59,7 +59,7 @@ class ManualScreen extends StatelessWidget {
         _Item('Update fails?', 'Uninstall app once after keystore change. Then updates work'),
 
         SizedBox(height: 40),
-      ]),
+      ])),   // closes ListView + SafeArea
     );
   }
 }

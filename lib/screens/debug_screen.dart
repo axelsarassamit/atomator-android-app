@@ -149,7 +149,7 @@ class _DebugScreenState extends State<DebugScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Debug')),
-      body: Column(children: [
+      body: SafeArea(top: false, child: Column(children: [
         if (_detectedNetwork.isNotEmpty) Padding(
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
           child: Text(_detectedNetwork, style: const TextStyle(fontSize: 11, color: Colors.cyan)),
@@ -177,7 +177,7 @@ class _DebugScreenState extends State<DebugScreen> {
             },
           ),
         )),
-      ]),
+      ])),   // closes Column + SafeArea
     );
   }
 }

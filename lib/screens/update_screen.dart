@@ -94,16 +94,27 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
     );
   }
 
+  // Strip Co-Authored-By trailers (added by tooling to commit messages) from
+  // release note bodies before displaying them to the user.
+  static String _cleanBody(String body) => body
+      .split('\n')
+      .where((l) => !l.trimLeft().startsWith('Co-Authored-By:'))
+      .join('\n')
+      .trim();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('App Update'), bottom: TabBar(controller: _tabCtrl, tabs: const [Tab(text: 'Latest'), Tab(text: 'All Versions')])),
-      body: TabBarView(controller: _tabCtrl, children: [_latestTab(), _allTab()]),
+      body: SafeArea(
+        top: false,   // AppBar already owns the top inset
+        child: TabBarView(controller: _tabCtrl, children: [_latestTab(), _allTab()]),
+      ),
     );
   }
 
   Widget _latestTab() {
-    return SingleChildScrollView(padding: const EdgeInsets.all(24), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return SingleChildScrollView(padding: const EdgeInsets.fromLTRB(24, 24, 24, 32), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Center(child: Image.asset('assets/images/atomator_banner.png', height: 60)),
       const SizedBox(height: 24),
       if (_checking) ...[
@@ -139,7 +150,7 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
           const SizedBox(height: 16),
           const Text('Release Notes:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
           const SizedBox(height: 4),
-          Text(_update!['body'], style: const TextStyle(fontSize: 12, color: Colors.white60)),
+          Text(_cleanBody(_update!['body']), style: const TextStyle(fontSize: 12, color: Colors.white60)),
         ],
         const SizedBox(height: 20),
         _downloadWidget(_update!['apkUrl'], _update!['apkName'] ?? 'atomator.apk'),
@@ -149,7 +160,7 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
 
   Widget _allTab() {
     if (_allReleases.isEmpty) { return const Center(child: CircularProgressIndicator()); }
-    return ListView.builder(itemCount: _allReleases.length, itemBuilder: (context, index) {
+    return ListView.builder(padding: const EdgeInsets.only(bottom: 24), itemCount: _allReleases.length, itemBuilder: (context, index) {
       final r = _allReleases[index];
       final isCurrent = r['version'] == UpdateService.currentVersion;
       final hasApk = r['apkUrl'] != null;
@@ -164,7 +175,7 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
           subtitle: Text('${r['date']}${hasApk ? ' | $sizeMB MB' : ''}', style: const TextStyle(fontSize: 11, color: Colors.white38)),
           children: [Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             if (r['body'] != null && (r['body'] as String).isNotEmpty) ...[
-              Text(r['body'], style: const TextStyle(fontSize: 12, color: Colors.white60)),
+              Text(_cleanBody(r['body']), style: const TextStyle(fontSize: 12, color: Colors.white60)),
               const SizedBox(height: 12),
             ],
             if (hasApk)
