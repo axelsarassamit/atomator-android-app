@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dartssh2/dartssh2.dart';
-import 'dart:convert'; // utf8
 import '../providers/host_provider.dart';
 import '../models/models.dart';
 
@@ -85,26 +84,8 @@ class _TerminalScreenState extends State<TerminalScreen> {
     try {
       final hp = context.read<HostProvider>();
       final creds = hp.credsForHost(_selectedHost!);
-
-      // Run all commands via sudo so the terminal works like a root shell —
-      // the user can type plain commands without prefixing sudo every time.
-      // Password is injected on stdin line 1; bash -s reads the command from
-      // stdin line 2, avoiding all shell-quoting issues.
-      final session = await _client!.execute('sudo -S bash -s');
-      session.stdin.add(utf8.encode('${creds.password}\n$cmd\n'));
-      await session.stdin.close();
-
-      final stdoutBuf = <int>[];
-      final stderrBuf = <int>[];
-      await Future.wait([
-        session.stdout.forEach((chunk) => stdoutBuf.addAll(chunk)),
-        session.stderr.forEach((chunk) => stderrBuf.addAll(chunk)),
-      ]);
-      await session.done;
-
-      final out = utf8.decode(stdoutBuf, allowMalformed: true).trim();
-      final err = utf8.decode(stderrBuf, allowMalformed: true).trim();
-      final output = out.isNotEmpty ? out : err;
+      final result = await _client!.run('echo "${creds.password}" | sudo -S bash -c "$cmd"');
+      final output = String.fromCharCodes(result).trim();
       if (output.isNotEmpty) {
         for (final line in output.split('\n')) {
           _addOutput(line);
