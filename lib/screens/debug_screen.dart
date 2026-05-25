@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import '../version.dart';
 
 class DebugScreen extends StatefulWidget {
   const DebugScreen({super.key});
@@ -22,23 +23,34 @@ class _DebugScreenState extends State<DebugScreen> {
   Future<void> _detectNetwork() async {
     try {
       final interfaces = await NetworkInterface.list(type: InternetAddressType.IPv4);
+      String? wifiIp;       // from wlan/eth — first choice
+      String? anyPrivateIp; // any private IP — fallback
+
       for (final iface in interfaces) {
         for (final addr in iface.addresses) {
           final ip = addr.address;
-          if (ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
-            final parts = ip.split('.');
-            final gateway = '${parts[0]}.${parts[1]}.${parts[2]}.1';
-            setState(() {
-              _detectedNetwork = 'Your IP: $ip | Gateway: $gateway';
-              if (_ipCtrl.text.isEmpty || _ipCtrl.text == '192.168.1.1') {
-                _ipCtrl.text = gateway;
-              }
-            });
-            return;
-          }
+          final isPrivate = ip.startsWith('192.168.') || ip.startsWith('172.') || ip.startsWith('10.');
+          if (!isPrivate) continue;
+          // Prefer real WiFi/LAN interfaces over cellular (ccmni, rmnet, ppp, etc.)
+          final isWifi = iface.name.startsWith('wlan') || iface.name.startsWith('eth') || iface.name.startsWith('en');
+          if (isWifi && wifiIp == null) wifiIp = ip;
+          anyPrivateIp ??= ip;
         }
       }
-      setState(() => _detectedNetwork = 'No local network detected');
+
+      final bestIp = wifiIp ?? anyPrivateIp;
+      if (bestIp != null) {
+        final parts = bestIp.split('.');
+        final gateway = '${parts[0]}.${parts[1]}.${parts[2]}.1';
+        setState(() {
+          _detectedNetwork = 'Your IP: $bestIp | Gateway: $gateway';
+          if (_ipCtrl.text.isEmpty || _ipCtrl.text == '192.168.1.1') {
+            _ipCtrl.text = gateway;
+          }
+        });
+      } else {
+        setState(() => _detectedNetwork = 'No local network detected');
+      }
     } catch (e) {
       setState(() => _detectedNetwork = 'Detection error: $e');
     }
@@ -52,11 +64,11 @@ class _DebugScreenState extends State<DebugScreen> {
     setState(() { _log.clear(); _running = true; });
 
     _addLog('=== ATOMATOR DEBUG ===');
-    _addLog('App version: 1.2.19');
+    _addLog('App version: $appVersion (build $appBuild)');
     _addLog('Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}');
     _addLog('');
 
-    // Detect network
+    // Detect network — show all interfaces
     _addLog('--- Network Detection ---');
     try {
       final interfaces = await NetworkInterface.list(type: InternetAddressType.IPv4);
@@ -90,8 +102,8 @@ class _DebugScreenState extends State<DebugScreen> {
       _addLog('FAIL: $e');
     }
 
-    // Test 3: Local SSH
-    final ip = _ipCtrl.text;
+    // Test 3: SSH to the chosen IP
+    final ip = _ipCtrl.text.trim();
     _addLog('--- Test 3: SSH to $ip:22 ---');
     try {
       final socket = await Socket.connect(ip, 22, timeout: const Duration(seconds: 5));
@@ -112,20 +124,24 @@ class _DebugScreenState extends State<DebugScreen> {
       _addLog('FAIL: $e');
     }
 
-    // Test 5: Scan nearby ports
-    _addLog('--- Test 5: Scan ${ip.substring(0, ip.lastIndexOf('.'))}.X for SSH ---');
-    final base = ip.substring(0, ip.lastIndexOf('.'));
+    // Test 5: Parallel SSH scan of full subnet
+    final base = ip.contains('.') ? ip.substring(0, ip.lastIndexOf('.')) : '192.168.0';
+    _addLog('--- Test 5: Scan $base.1-100 for SSH (parallel) ---');
     int found = 0;
-    for (int i = 1; i <= 10; i++) {
+    final scanFutures = <Future<void>>[];
+    for (int i = 1; i <= 100; i++) {
       final scanIp = '$base.$i';
-      try {
-        final socket = await Socket.connect(scanIp, 22, timeout: const Duration(seconds: 1));
-        _addLog('FOUND: $scanIp:22 open');
-        socket.destroy();
-        found++;
-      } catch (_) {}
+      scanFutures.add(() async {
+        try {
+          final s = await Socket.connect(scanIp, 22, timeout: const Duration(milliseconds: 500));
+          if (mounted) { setState(() => _log.add('[${DateTime.now().toString().substring(11, 19)}] FOUND: $scanIp:22 open')); }
+          s.destroy();
+          found++;
+        } catch (_) {}
+      }());
     }
-    _addLog(found > 0 ? 'Found $found SSH hosts' : 'No SSH hosts found in $base.1-10');
+    await Future.wait(scanFutures);
+    _addLog(found > 0 ? 'Found $found SSH host(s) in $base.1-100' : 'No SSH hosts found in $base.1-100');
 
     // Test 6: File system
     _addLog('--- Test 6: File system ---');
@@ -155,7 +171,7 @@ class _DebugScreenState extends State<DebugScreen> {
           child: Text(_detectedNetwork, style: const TextStyle(fontSize: 11, color: Colors.cyan)),
         ),
         Padding(padding: const EdgeInsets.all(12), child: Row(children: [
-          Expanded(child: TextField(controller: _ipCtrl, decoration: const InputDecoration(labelText: 'Test IP', border: OutlineInputBorder(), isDense: true))),
+          Expanded(child: TextField(controller: _ipCtrl, decoration: const InputDecoration(labelText: 'Test IP (enter your SSH host)', border: OutlineInputBorder(), isDense: true))),
           const SizedBox(width: 8),
           ElevatedButton(onPressed: _running ? null : _runAllTests, child: Text(_running ? 'Running...' : 'Run Tests')),
         ])),
