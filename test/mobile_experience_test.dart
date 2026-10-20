@@ -136,6 +136,13 @@ void main() {
     );
     await tester.pumpAndSettle();
     if (Platform.environment['ATOMATOR_CAPTURE'] == '1') {
+      await tester.runAsync(
+        () => precacheImage(
+          const AssetImage('assets/images/app_icon.png'),
+          tester.element(find.byType(DashboardScreen)),
+        ),
+      );
+      await tester.pumpAndSettle();
       await tester.runAsync(() async {
         final boundary =
             key.currentContext!.findRenderObject() as RenderRepaintBoundary;

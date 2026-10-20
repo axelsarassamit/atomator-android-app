@@ -7,6 +7,7 @@ import '../services/command_service.dart';
 import '../models/models.dart';
 import '../models/fleet_summary.dart';
 import '../theme.dart';
+import '../widgets/atomator_brand.dart';
 import 'job_screen.dart';
 import 'hosts_screen.dart';
 
@@ -26,18 +27,7 @@ class DashboardScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: atomatorAccent.withAlpha(25),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(
-                      Icons.hub_outlined,
-                      color: atomatorAccent,
-                      size: 28,
-                    ),
-                  ),
+                  const AtomatorMark(size: 64),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -45,7 +35,8 @@ class DashboardScreen extends StatelessWidget {
                       children: [
                         Text(
                           'Atomator',
-                          style: Theme.of(context).textTheme.titleMedium,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(color: atomatorLogoAccent),
                         ),
                         Text(
                           'Linux fleet management',

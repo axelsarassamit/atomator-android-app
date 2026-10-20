@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/atomator_brand.dart';
 import 'dart:convert';
 import 'dart:io';
 import '../services/update_service.dart';
@@ -115,7 +116,7 @@ class _UpdateScreenState extends State<UpdateScreen> with SingleTickerProviderSt
 
   Widget _latestTab() {
     return SingleChildScrollView(padding: const EdgeInsets.fromLTRB(24, 24, 24, 32), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Center(child: Image.asset('assets/images/atomator_banner.png', height: 60)),
+      Center(child: const AtomatorBrand()),
       const SizedBox(height: 24),
       if (_checking) ...[
         const Center(child: CircularProgressIndicator()),

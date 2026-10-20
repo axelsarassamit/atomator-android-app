@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/atomator_brand.dart';
 import 'package:flutter/services.dart';
 import '../version.dart';
 
@@ -13,7 +14,7 @@ class AboutScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
         child: Column(
           children: [
-            Image.asset('assets/images/atomator_banner.png', height: 100),
+            const AtomatorBrand(markSize: 100, vertical: true),
             const SizedBox(height: 24),
             const Text('Atomator Mobile', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.cyan)),
             const SizedBox(height: 4),
