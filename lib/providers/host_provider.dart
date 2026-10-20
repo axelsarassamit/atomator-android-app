@@ -14,7 +14,9 @@ class HostProvider extends ChangeNotifier {
   int _checkTotal = 0;
   bool _isCollectingMacs = false;
 
-  HostProvider(this._storage) { _loadData(); }
+  HostProvider(this._storage) {
+    _loadData();
+  }
 
   List<Host> get hosts => _hosts;
   Credentials? get credentials => _credentials;
@@ -23,14 +25,18 @@ class HostProvider extends ChangeNotifier {
   bool get isCollectingMacs => _isCollectingMacs;
   int get checkProgress => _checkProgress;
   int get checkTotal => _checkTotal;
-  String get checkStatus => _isChecking ? 'Checking $_checkProgress/$_checkTotal' : '';
+  String get checkStatus =>
+      _isChecking ? 'Checking $_checkProgress/$_checkTotal' : '';
   int get onlineCount => _hosts.where((h) => h.isOnline).length;
   int get offlineCount => _hosts.where((h) => !h.isOnline).length;
-  List<String> get groups => _hosts.map((h) => h.group).toSet().toList()..sort();
-  List<Host> hostsInGroup(String group) => _hosts.where((h) => h.group == group).toList();
+  List<String> get groups =>
+      _hosts.map((h) => h.group).toSet().toList()..sort();
+  List<Host> hostsInGroup(String group) =>
+      _hosts.where((h) => h.group == group).toList();
 
   Credentials credsForHost(Host h) {
-    if (h.hasCustomCreds) return Credentials(username: h.customUser!, password: h.customPass!);
+    if (h.hasCustomCreds)
+      return Credentials(username: h.customUser!, password: h.customPass!);
     return _credentials!;
   }
 
@@ -48,7 +54,12 @@ class HostProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addHost(String ip, {String group = 'default', String? user, String? pass}) async {
+  Future<void> addHost(
+    String ip, {
+    String group = 'default',
+    String? user,
+    String? pass,
+  }) async {
     if (_hosts.any((h) => h.ip == ip)) return;
     _hosts.add(Host(ip: ip, group: group, customUser: user, customPass: pass));
     await _storage.saveHosts(_hosts);
@@ -56,10 +67,16 @@ class HostProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addHostRange(String base, int start, int end, {String group = 'default'}) async {
+  Future<void> addHostRange(
+    String base,
+    int start,
+    int end, {
+    String group = 'default',
+  }) async {
     for (int i = start; i <= end; i++) {
       final ip = '$base.$i';
-      if (!_hosts.any((h) => h.ip == ip)) _hosts.add(Host(ip: ip, group: group));
+      if (!_hosts.any((h) => h.ip == ip))
+        _hosts.add(Host(ip: ip, group: group));
     }
     await _storage.saveHosts(_hosts);
     _isConfigured = _credentials != null;
@@ -80,63 +97,89 @@ class HostProvider extends ChangeNotifier {
   }
 
   Future<void> checkHostStatus() async {
+    if (_isChecking) return;
+    final scanHosts = List<Host>.of(_hosts);
     _isChecking = true;
     _checkProgress = 0;
-    _checkTotal = _hosts.length;
+    _checkTotal = scanHosts.length;
     notifyListeners();
 
-    for (final h in _hosts) {
-      h.isOnline = await SSHService.ping(h.ip);
-      h.sshOpen = false;
+    try {
+      for (final h in scanHosts) {
+        h.isOnline = await SSHService.ping(h.ip);
+        h.sshOpen = false;
 
-      if (h.isOnline) {
-        // Try reverse DNS lookup first
-        try {
-          final addr = InternetAddress(h.ip);
-          final resolved = await addr.reverse();
-          final rdns = resolved.host;
-          if (rdns != h.ip && rdns.isNotEmpty) {
-            h.hostname = rdns;
-          }
-        } catch (_) {}
-
-        // Check SSH port
-        try {
-          final s = await Socket.connect(h.ip, 22, timeout: const Duration(seconds: 3));
-          s.destroy();
-          h.sshOpen = true;
-        } catch (_) {}
-
-        // If SSH works, get hostname via SSH (overrides DNS)
-        if (h.sshOpen && _credentials != null) {
+        if (h.isOnline) {
+          // Try reverse DNS lookup first
           try {
-            final r = await SSHService.runCommand(h.ip, credsForHost(h), 'hostname', timeoutSec: 5);
-            if (r.success && r.output.isNotEmpty) h.hostname = r.output;
+            final addr = InternetAddress(h.ip);
+            final resolved = await addr.reverse().timeout(
+              const Duration(seconds: 3),
+            );
+            final rdns = resolved.host;
+            if (rdns != h.ip && rdns.isNotEmpty) {
+              h.hostname = rdns;
+            }
           } catch (_) {}
 
-          // Get MAC if we dont have one
-          if (h.mac == null || h.mac!.isEmpty) {
+          // Check SSH port
+          try {
+            final s = await Socket.connect(
+              h.ip,
+              22,
+              timeout: const Duration(seconds: 3),
+            );
+            s.destroy();
+            h.sshOpen = true;
+          } catch (_) {}
+
+          // If SSH works, get hostname via SSH (overrides DNS)
+          if (h.sshOpen && _credentials != null) {
             try {
-              final r = await SSHService.runCommand(h.ip, credsForHost(h), 'ip link show | grep -A1 "state UP" | grep link/ether | head -1 | tr -s " " | cut -d" " -f3', timeoutSec: 5);
-              if (r.success && r.output.isNotEmpty && r.output != 'N/A') h.mac = r.output.trim();
+              final r = await SSHService.runCommand(
+                h.ip,
+                credsForHost(h),
+                'hostname',
+                timeoutSec: 5,
+              );
+              if (r.success && r.output.isNotEmpty) h.hostname = r.output;
             } catch (_) {}
+
+            // Get MAC if we dont have one
+            if (h.mac == null || h.mac!.isEmpty) {
+              try {
+                final r = await SSHService.runCommand(
+                  h.ip,
+                  credsForHost(h),
+                  'ip link show | grep -A1 "state UP" | grep link/ether | head -1 | tr -s " " | cut -d" " -f3',
+                  timeoutSec: 5,
+                );
+                if (r.success && r.output.isNotEmpty && r.output != 'N/A')
+                  h.mac = r.output.trim();
+              } catch (_) {}
+            }
+          }
+
+          // If no hostname yet, try MAC vendor lookup
+          if ((h.hostname == null ||
+                  h.hostname!.isEmpty ||
+                  h.hostname == h.ip) &&
+              h.mac != null &&
+              h.mac!.length >= 8) {
+            h.hostname = _macVendor(h.mac!);
           }
         }
 
-        // If no hostname yet, try MAC vendor lookup
-        if ((h.hostname == null || h.hostname!.isEmpty || h.hostname == h.ip) && h.mac != null && h.mac!.length >= 8) {
-          h.hostname = _macVendor(h.mac!);
-        }
+        h.lastSeen = h.isOnline ? DateTime.now() : h.lastSeen;
+        _checkProgress++;
+        notifyListeners();
       }
 
-      h.lastSeen = h.isOnline ? DateTime.now() : h.lastSeen;
-      _checkProgress++;
+      await _storage.saveHosts(_hosts);
+    } finally {
+      _isChecking = false;
       notifyListeners();
     }
-
-    await _storage.saveHosts(_hosts);
-    _isChecking = false;
-    notifyListeners();
   }
 
   static String _macVendor(String mac) {
@@ -208,8 +251,14 @@ class HostProvider extends ChangeNotifier {
     notifyListeners();
     final futures = _hosts.where((h) => h.isOnline).map((h) async {
       try {
-        final r = await SSHService.runCommand(h.ip, credsForHost(h), 'ip link show | grep -A1 "state UP" | grep link/ether | head -1 | tr -s " " | cut -d" " -f3', timeoutSec: 5);
-        if (r.success && r.output.isNotEmpty && r.output != 'N/A') h.mac = r.output.trim();
+        final r = await SSHService.runCommand(
+          h.ip,
+          credsForHost(h),
+          'ip link show | grep -A1 "state UP" | grep link/ether | head -1 | tr -s " " | cut -d" " -f3',
+          timeoutSec: 5,
+        );
+        if (r.success && r.output.isNotEmpty && r.output != 'N/A')
+          h.mac = r.output.trim();
       } catch (_) {}
     });
     await Future.wait(futures);
@@ -220,7 +269,8 @@ class HostProvider extends ChangeNotifier {
 
   Future<void> removeGroup(String group) async {
     _hosts.removeWhere((h) => h.group == group);
-    await _storage.saveHosts(_hosts); notifyListeners();
+    await _storage.saveHosts(_hosts);
+    notifyListeners();
   }
 
   Future<void> clearAll() async {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/atomator_brand.dart';
 
 class SplashScreen extends StatefulWidget {
   final Widget nextScreen;
@@ -8,19 +9,28 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeIn;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
-    _fadeIn = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _fadeIn = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
     _controller.forward();
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => widget.nextScreen));
+        Navigator.of(
+          context,
+        ).pushReplacement(MaterialPageRoute(builder: (_) => widget.nextScreen));
       }
     });
   }
@@ -40,7 +50,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           opacity: _fadeIn,
           child: Padding(
             padding: const EdgeInsets.all(48),
-            child: Image.asset('assets/images/splash_logo.png', fit: BoxFit.contain),
+            child: const SingleChildScrollView(
+              child: AtomatorBrand(markSize: 240, vertical: true),
+            ),
           ),
         ),
       ),

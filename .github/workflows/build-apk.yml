@@ -113,6 +113,9 @@ jobs:
       - name: Build release APK
         run: flutter build apk --release
 
+      - name: Verify release identity and branding
+        run: python3 scripts/verify_release_apk.py build/app/outputs/flutter-apk/app-release.apk
+
       - name: Rename APK
         run: cp build/app/outputs/flutter-apk/app-release.apk "${{ steps.version.outputs.apk_name }}"
 

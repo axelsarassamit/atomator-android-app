@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/atomator_brand.dart';
 import 'package:provider/provider.dart';
 import '../providers/host_provider.dart';
 import '../models/models.dart';
@@ -21,7 +22,7 @@ class _SetupScreenState extends State<SetupScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(body: SafeArea(child: Padding(padding: const EdgeInsets.all(24), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     const SizedBox(height: 40),
-    Image.asset('assets/images/atomator_banner.png', height: 60),
+    const AtomatorBrand(),
     const SizedBox(height: 24),
     Text(_step == 0 ? 'Step 1: SSH Credentials' : 'Step 2: Add Hosts', style: Theme.of(context).textTheme.titleMedium),
     const SizedBox(height: 8),

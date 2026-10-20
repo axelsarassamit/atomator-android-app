@@ -7,8 +7,7 @@ def setup_signing():
     key_alias = os.environ.get('KEY_ALIAS', 'atomator')
 
     if not keystore_b64:
-        print('WARNING: No KEYSTORE_BASE64 secret - using debug signing')
-        return
+        raise RuntimeError('Release keystore is required; refusing debug signing')
 
     print('Keystore secret found (' + str(len(keystore_b64)) + ' chars)')
 
