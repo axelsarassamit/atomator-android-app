@@ -34,3 +34,5 @@ The optional local screenshot capture uses ATOMATOR_CAPTURE=1 on Windows. CI doe
 Verify terminal session continuity when switching tabs, keyboard/system navigation insets, large host lists, custom credentials on an actual Linux host, and background/foreground lifecycle behavior. Automated tests do not establish remote SSH interoperability.
 
 Existing SSH command wrapping, release version, signing, and update behavior are unchanged. This branch is for review and device validation before a signed release.
+
+Android debug APK compilation also passed locally using Flutter 3.41.9 and Java 17. This verifies compilation only, not live SSH behavior or production release signing.
