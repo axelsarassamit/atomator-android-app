@@ -63,6 +63,14 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Check configured signing certificate
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          python3 -c "import os,base64,pathlib; pathlib.Path(os.environ['RUNNER_TEMP'],'signing-check.jks').write_bytes(base64.b64decode(os.environ['KEYSTORE_BASE64']))"
+          keytool -list -v -keystore "$RUNNER_TEMP/signing-check.jks" -storepass:env KEYSTORE_PASSWORD | grep -E 'Alias name:|Owner:|SHA256:'
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.29.0'
@@ -113,9 +121,6 @@ jobs:
       - name: Build release APK
         run: flutter build apk --release
 
-      - name: Verify release identity and branding
-        run: python3 scripts/verify_release_apk.py build/app/outputs/flutter-apk/app-release.apk
-
       - name: Rename APK
         run: cp build/app/outputs/flutter-apk/app-release.apk "${{ steps.version.outputs.apk_name }}"
 
@@ -126,6 +131,9 @@ jobs:
           name: ${{ steps.version.outputs.apk_name }}
           path: ${{ steps.version.outputs.apk_name }}
           retention-days: 30
+
+      - name: Verify release identity and branding
+        run: python3 scripts/verify_release_apk.py build/app/outputs/flutter-apk/app-release.apk
 
       # ── GitHub Release (tag pushes only) ───────────────────────────────────
       # Title format:  Atomator Mobile {version} — {short description}
