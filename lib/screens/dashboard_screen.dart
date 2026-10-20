@@ -5,157 +5,403 @@ import '../providers/job_provider.dart';
 import '../services/ssh_service.dart';
 import '../services/command_service.dart';
 import '../models/models.dart';
+import '../models/fleet_summary.dart';
+import '../theme.dart';
 import 'job_screen.dart';
+import 'hosts_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<HostProvider>(builder: (context, hp, _) {
-      return SafeArea(child: SingleChildScrollView(child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(width: double.infinity, child: Image.asset('assets/images/atomator_banner.png', fit: BoxFit.fitWidth)),
-          Padding(padding: const EdgeInsets.all(16), child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) => Consumer<HostProvider>(
+    builder: (context, hp, _) {
+      final ready = hp.hosts.where((h) => h.sshOpen).length;
+      return SafeArea(
+        child: RefreshIndicator(
+          onRefresh: hp.checkHostStatus,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(20),
             children: [
-              Row(children: [
-                _stat('Total', hp.hosts.length.toString(), Icons.computer, Colors.cyan),
-                _stat('Online', hp.onlineCount.toString(), Icons.wifi, Colors.green),
-                _stat('SSH', hp.hosts.where((h) => h.sshOpen).length.toString(), Icons.terminal, const Color(0xFF4CAF50)),
-                _stat('Offline', hp.offlineCount.toString(), Icons.wifi_off, Colors.red),
-                _stat('Groups', hp.groups.length.toString(), Icons.folder, Colors.orange),
-              ].map((w) => Expanded(child: w)).toList()),
-              const SizedBox(height: 16),
-              Card(child: Column(children: [
-                ListTile(
-                  leading: hp.isChecking
-                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.cyan))
-                      : const Icon(Icons.refresh, color: Colors.cyan),
-                  title: Text(hp.isChecking ? 'Checking hosts…' : 'Check All Hosts'),
-                  subtitle: Text('Ping ${hp.hosts.length} hosts'),
-                  onTap: hp.isChecking ? null : () => hp.checkHostStatus(),
-                ),
-                if (hp.isChecking) Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 12), child: Column(children: [
-                  LinearProgressIndicator(value: hp.checkTotal > 0 ? hp.checkProgress / hp.checkTotal : 0, color: Colors.cyan, backgroundColor: Colors.white12),
-                  const SizedBox(height: 4),
-                  Text(hp.checkStatus, style: const TextStyle(fontSize: 11, color: Colors.white38)),
-                ])),
-              ])),
-              const SizedBox(height: 8),
-              Card(child: ListTile(
-                leading: const Icon(Icons.analytics, color: Colors.green),
-                title: const Text('Fleet Summary'),
-                subtitle: const Text('RAM, disk, uptime overview'),
-                onTap: () => _fleet(context, hp),
-              )),
-              const SizedBox(height: 16),
-              Consumer<JobProvider>(builder: (context, jp, _) {
-                final active = jp.activeJob;
-                if (active == null) return const SizedBox();
-                return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('RUNNING', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.orange, letterSpacing: 1.2)),
-                  const SizedBox(height: 8),
-                  Card(
-                    color: const Color(0xFF1A2332),
-                    child: ListTile(
-                      leading: const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orange)),
-                      title: Text(active.name, style: const TextStyle(fontSize: 13)),
-                      subtitle: Text('${active.results.length} results so far', style: const TextStyle(fontSize: 11, color: Colors.white38)),
-                      trailing: const Icon(Icons.chevron_right, color: Colors.white24),
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: active))),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: atomatorAccent.withAlpha(25),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(
+                      Icons.hub_outlined,
+                      color: atomatorAccent,
+                      size: 28,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                ]);
-              }),
-              Consumer<JobProvider>(builder: (context, jp, _) {
-                if (jp.history.isEmpty) return const SizedBox();
-                return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('RECENT', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.cyan, letterSpacing: 1.2)),
-                  const SizedBox(height: 8),
-                  ...jp.history.take(5).map((j) => Card(child: ListTile(
-                    dense: true,
-                    leading: Icon(j.failCount > 0 ? Icons.warning : Icons.check_circle, color: j.failCount > 0 ? Colors.orange : Colors.green, size: 20),
-                    title: Text(j.name, style: const TextStyle(fontSize: 13)),
-                    subtitle: Text('OK: ${j.okCount} | Failed: ${j.failCount}  •  ${_timeAgo(j.startTime)}', style: const TextStyle(fontSize: 11, color: Colors.white38)),
-                    trailing: j.totalDuration != null ? Text('${j.totalDuration!.inSeconds}s', style: const TextStyle(fontSize: 11, color: Colors.white24)) : null,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => JobScreen(job: j))),
-                  ))),
-                ]);
-              }),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Atomator',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        Text(
+                          'Linux fleet management',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+              Text(
+                'Fleet overview',
+                style: Theme.of(context).textTheme.headlineLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                hp.hosts.isEmpty
+                    ? 'Add your first host to get started.'
+                    : '${hp.hosts.length} hosts across ${hp.groups.length} groups. Pull down to refresh.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 18),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final columns = constraints.maxWidth >= 600 ? 4 : 2;
+                  final width =
+                      (constraints.maxWidth - 12 * (columns - 1)) / columns;
+                  return Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      _stat(
+                        context,
+                        width,
+                        'Total hosts',
+                        hp.hosts.length,
+                        Icons.dns_outlined,
+                        atomatorAccent,
+                      ),
+                      _stat(
+                        context,
+                        width,
+                        'Online',
+                        hp.onlineCount,
+                        Icons.wifi,
+                        const Color(0xFF78DEAC),
+                      ),
+                      _stat(
+                        context,
+                        width,
+                        'SSH ready',
+                        ready,
+                        Icons.terminal,
+                        const Color(0xFF9FB9FF),
+                      ),
+                      _stat(
+                        context,
+                        width,
+                        'Offline',
+                        hp.offlineCount,
+                        Icons.wifi_off,
+                        const Color(0xFFFFB4AB),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+              if (hp.hosts.isEmpty)
+                FilledButton.icon(
+                  onPressed:
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const HostsScreen()),
+                      ),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add hosts'),
+                )
+              else ...[
+                FilledButton.icon(
+                  onPressed: hp.isChecking ? null : hp.checkHostStatus,
+                  icon:
+                      hp.isChecking
+                          ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Icon(Icons.refresh),
+                  label: Text(hp.isChecking ? hp.checkStatus : 'Refresh hosts'),
+                ),
+                if (hp.isChecking) ...[
+                  const SizedBox(height: 12),
+                  LinearProgressIndicator(
+                    value:
+                        hp.checkTotal == 0
+                            ? null
+                            : hp.checkProgress / hp.checkTotal,
+                    semanticsLabel: 'Host scan progress',
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Card(
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 8,
+                    ),
+                    leading: const Icon(
+                      Icons.insights_outlined,
+                      color: atomatorAccent,
+                    ),
+                    title: const Text('Fleet health'),
+                    subtitle: const Text('Memory, disk space and uptime'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _fleet(context, hp),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 24),
+              Consumer<JobProvider>(
+                builder:
+                    (context, jp, _) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Recent activity',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        if (jp.activeJob case final active?)
+                          Card(
+                            child: ListTile(
+                              leading: const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              title: Text(active.name),
+                              subtitle: Text(
+                                'Running · ${active.total} results received',
+                              ),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap:
+                                  () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => JobScreen(job: active),
+                                    ),
+                                  ),
+                            ),
+                          ),
+                        if (jp.history.isEmpty && jp.activeJob == null)
+                          const Card(
+                            child: Padding(
+                              padding: EdgeInsets.all(20),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.history, color: atomatorAccent),
+                                  SizedBox(width: 14),
+                                  Expanded(
+                                    child: Text(
+                                      'Your completed actions will appear here.',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ...jp.history
+                            .take(5)
+                            .map(
+                              (job) => Card(
+                                child: ListTile(
+                                  leading: Icon(
+                                    job.failCount > 0
+                                        ? Icons.warning_amber_rounded
+                                        : Icons.check_circle_outline,
+                                    color:
+                                        job.failCount > 0
+                                            ? Colors.orangeAccent
+                                            : const Color(0xFF78DEAC),
+                                  ),
+                                  title: Text(job.name),
+                                  subtitle: Text(
+                                    '${job.okCount} succeeded · ${job.failCount} failed · ${_timeAgo(job.startTime)}',
+                                  ),
+                                  trailing: const Icon(Icons.chevron_right),
+                                  onTap:
+                                      () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => JobScreen(job: job),
+                                        ),
+                                      ),
+                                ),
+                              ),
+                            ),
+                      ],
+                    ),
+              ),
             ],
-          )),
-        ],
-      )));
-    });
-  }
+          ),
+        ),
+      );
+    },
+  );
 
-  Widget _stat(String label, String value, IconData icon, Color color) {
-    return Card(child: Padding(padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4), child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: color, size: 18),
-        const SizedBox(height: 2),
-        FittedBox(fit: BoxFit.scaleDown, child: Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white))),
-        FittedBox(fit: BoxFit.scaleDown, child: Text(label, style: const TextStyle(fontSize: 9, color: Colors.white38))),
-      ],
-    )));
-  }
+  Widget _stat(
+    BuildContext context,
+    double width,
+    String label,
+    int value,
+    IconData icon,
+    Color color,
+  ) => SizedBox(
+    width: width,
+    child: Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: color, size: 22),
+            const SizedBox(height: 12),
+            Text('$value', style: Theme.of(context).textTheme.headlineLarge),
+            const SizedBox(height: 4),
+            Text(label, style: Theme.of(context).textTheme.bodySmall),
+          ],
+        ),
+      ),
+    ),
+  );
 
-  String _timeAgo(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
-    if (diff.inSeconds < 60) return 'just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
+  String _timeAgo(DateTime time) {
+    final diff = DateTime.now().difference(time);
+    if (diff.inMinutes < 1) return 'just now';
+    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
+    if (diff.inDays < 1) return '${diff.inHours}h ago';
     return '${diff.inDays}d ago';
   }
 
-  void _fleet(BuildContext context, HostProvider hp) async {
-    final creds = hp.credentials;
-    if (creds == null) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Set credentials in Settings first.'))); return; }
-    final online = hp.hosts.where((h) => h.isOnline).toList();
-    if (online.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No online hosts.'))); return; }
-    showDialog(context: context, barrierDismissible: false, builder: (_) => AlertDialog(
-      backgroundColor: const Color(0xFF161B22), title: const Text('Fleet Summary'),
-      content: FutureBuilder<Map<String, dynamic>>(future: _collect(online, creds), builder: (ctx, snap) {
-        if (!snap.hasData) return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
-        final d = snap.data!;
-        return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Online: ${d['online']}/${hp.hosts.length}', style: const TextStyle(color: Colors.green)),
-          const SizedBox(height: 4),
-          Text('Total RAM: ${d['ramGB']} GB'),
-          Text('Avg RAM: ${d['avgGB']} GB/host'),
-          const SizedBox(height: 4),
-          if (d['crit'] > 0) Text('Disk Critical: ${d['crit']} host(s)', style: const TextStyle(color: Colors.red)),
-          if (d['warn'] > 0) Text('Disk Warning: ${d['warn']} host(s)', style: const TextStyle(color: Colors.orange)),
-          if (d['crit'] == 0 && d['warn'] == 0) const Text('Disk: All healthy', style: TextStyle(color: Colors.green)),
-          const SizedBox(height: 4),
-          Text('Uptime: ${d['minD']}d – ${d['maxD']}d'),
-        ]);
-      }),
-      actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
-    ));
+  void _fleet(BuildContext context, HostProvider hp) {
+    final hosts = hp.hosts.where((h) => h.sshOpen).toList();
+    if (hp.credentials == null || hosts.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Set SSH credentials and refresh hosts first.'),
+        ),
+      );
+      return;
+    }
+    // Create once, outside the dialog builder, so rebuilds never repeat remote work.
+    final readings = _collect(hosts, hp);
+    showDialog(
+      context: context,
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Fleet health'),
+            content: FutureBuilder<FleetSummary>(
+              future: readings,
+              builder: (context, snapshot) {
+                if (snapshot.hasError)
+                  return const Text(
+                    'Could not collect fleet readings. Try refreshing hosts.',
+                  );
+                if (!snapshot.hasData)
+                  return const SizedBox(
+                    height: 100,
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                final summary = snapshot.data!;
+                return SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${summary.reported} of ${hosts.length} hosts reported',
+                      ),
+                      if (summary.unavailable > 0)
+                        Text(
+                          '${summary.unavailable} unavailable or invalid readings',
+                          style: const TextStyle(color: Colors.orangeAccent),
+                        ),
+                      if (summary.reported > 0) ...[
+                        const SizedBox(height: 16),
+                        Text('Total memory: ${summary.totalRam} GB'),
+                        Text('Average memory: ${summary.averageRam} GB / host'),
+                        const SizedBox(height: 12),
+                        if (summary.critical > 0)
+                          Text(
+                            '${summary.critical} hosts at 90% disk usage or above',
+                            style: const TextStyle(color: Colors.redAccent),
+                          ),
+                        if (summary.warning > 0)
+                          Text(
+                            '${summary.warning} hosts at 80% to 89% disk usage',
+                            style: const TextStyle(color: Colors.orangeAccent),
+                          ),
+                        if (summary.critical == 0 && summary.warning == 0)
+                          const Text(
+                            'Reported disks are below 80% usage.',
+                            style: TextStyle(color: Color(0xFF78DEAC)),
+                          ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Uptime: ${summary.minUptime! ~/ 86400} to ${summary.maxUptime! ~/ 86400} days',
+                        ),
+                      ] else
+                        const Padding(
+                          padding: EdgeInsets.only(top: 12),
+                          child: Text(
+                            'No valid health data. Check SSH access and try again.',
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+    );
   }
 
-  Future<Map<String, dynamic>> _collect(List<Host> hosts, Credentials creds) async {
-    int ram = 0, warn = 0, crit = 0, maxU = 0, minU = 999999999, n = 0;
-    final results = await Future.wait(hosts.map((h) => SSHService.runCommand(h.ip, creds, Commands.fleetSummary(), sudo: true, timeoutSec: 10)));
-    for (final r in results) {
-      if (!r.success) continue;
-      n++;
-      final p = r.output.split('|');
-      if (p.length >= 3) {
-        final rm = int.tryParse(p[0]) ?? 0;
-        final dk = int.tryParse(p[1]) ?? 0;
-        final up = int.tryParse(p[2]) ?? 0;
-        ram += rm;
-        if (dk >= 90) { crit++; } else if (dk >= 80) { warn++; }
-        if (up > maxU) { maxU = up; }
-        if (up < minU) { minU = up; }
-      }
+  Future<FleetSummary> _collect(List<Host> hosts, HostProvider hp) async {
+    final results = <SSHResult>[];
+    // Bound connection pressure for larger fleets and honor per-host credentials.
+    for (var i = 0; i < hosts.length; i += 5) {
+      results.addAll(
+        await Future.wait(
+          hosts
+              .skip(i)
+              .take(5)
+              .map(
+                (host) => SSHService.runCommand(
+                  host.ip,
+                  hp.credsForHost(host),
+                  Commands.fleetSummary(),
+                  sudo: true,
+                  timeoutSec: 10,
+                ),
+              ),
+        ),
+      );
     }
-    return {'online': n, 'ramGB': ram ~/ 1024, 'avgGB': n > 0 ? ram ~/ n ~/ 1024 : 0, 'warn': warn, 'crit': crit, 'maxD': maxU ~/ 86400, 'minD': minU ~/ 86400};
+    return FleetSummary.fromResults(results);
   }
 }
