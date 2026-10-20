@@ -20,8 +20,10 @@ def verify(apk):
     suffix = '.bat' if os.name == 'nt' else ''
     signatures = subprocess.check_output(
         [str(tools / ('apksigner' + suffix)), 'verify', '--print-certs', str(apk)], text=True)
-    certificates = re.findall(r'Signer #\d+ certificate SHA-256 digest: ([0-9a-f]+)', signatures)
-    if certificates != [CERTIFICATE]:
+    certificates = re.findall(
+        r'(?:Signer #\d+|V\d+ Signer):? certificate SHA-256 digest:\s*([0-9a-fA-F]{64})',
+        signatures)
+    if {certificate.lower() for certificate in certificates} != {CERTIFICATE}:
         print('\n'.join(line for line in signatures.splitlines() if 'certificate' in line), flush=True)
         print(f'Expected certificate SHA-256: {CERTIFICATE}', flush=True)
         raise RuntimeError('Signing certificate differs from the published app')

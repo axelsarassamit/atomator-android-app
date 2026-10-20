@@ -66,7 +66,9 @@ Whether you manage 5 machines or 500, Atomator lets you update, monitor, and con
 
 ## Screenshots
 
-> *Dashboard • Hosts • Actions • SSH Terminal • Tools • Config*
+![Updated Atomator fleet dashboard](docs/images/fleet-overview.png)
+
+*Rendered preview with synthetic host data. The approved robot logo is used throughout the app.*
 
 ---
 
@@ -94,10 +96,11 @@ Whether you manage 5 machines or 500, Atomator lets you update, monitor, and con
 ## Release History
 
 <details>
-<summary>Click to expand (42 releases)</summary>
+<summary>Click to expand release history</summary>
 
 | Version | Changes |
 |---------|---------|
+| v1.8.0 | Approved robot branding and adaptive icon; responsive dashboard; host search and connection filters; persistent tabs; corrected fleet health and job ordering; guarded host scans |
 | v1.7.2 | **Debug screen fix**: version now shows real app version (was hardcoded 1.2.19); default test IP now resolves to WiFi/LAN gateway (was picking cellular interface on Android); SSH scan extended to full 1-100 range with parallel 500ms connections |
 | v1.7.1 | **SSH fix**: reverted to the v1.4.6 approach (`echo "pass" \| sudo -S bash -c "cmd"` via `client.run()`) — Claude's base64 and stdin-injection rewrites both broke SSH; original approach confirmed working |
 | v1.7.0 | **Performance sub-menu**: all performance settings (CPU governor, compositing, Bluetooth, CUPS, Avahi, THP, I/O scheduler, Plymouth, SSD TRIM, swappiness, RAM cache, temperatures) consolidated in one dialog with enable/disable buttons; **App installer**: Firefox and Chrome added (now 12 apps); standalone Firefox/Chrome cards removed |
