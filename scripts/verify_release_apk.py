@@ -22,6 +22,8 @@ def verify(apk):
         [str(tools / ('apksigner' + suffix)), 'verify', '--print-certs', str(apk)], text=True)
     certificates = re.findall(r'Signer #\d+ certificate SHA-256 digest: ([0-9a-f]+)', signatures)
     if certificates != [CERTIFICATE]:
+        print('\n'.join(line for line in signatures.splitlines() if 'certificate' in line), flush=True)
+        print(f'Expected certificate SHA-256: {CERTIFICATE}', flush=True)
         raise RuntimeError('Signing certificate differs from the published app')
     aapt = tools / ('aapt.exe' if os.name == 'nt' else 'aapt')
     manifest = subprocess.check_output([str(aapt), 'dump', 'badging', str(apk)], text=True)
