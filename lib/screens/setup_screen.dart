@@ -16,7 +16,7 @@ class SetupScreen extends StatefulWidget {
 class _SetupScreenState extends State<SetupScreen> {
   final _userCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-  final _rangeCtrl = TextEditingController(text: '192.168.1.50-199');
+  final _rangeCtrl = TextEditingController();
   int _step = 0;
 
   @override
@@ -40,7 +40,7 @@ class _SetupScreenState extends State<SetupScreen> {
       }, child: const Text('Next'))),
     ],
     if (_step == 1) ...[
-      TextField(controller: _rangeCtrl, decoration: const InputDecoration(labelText: 'IP Range (e.g. 192.168.1.50-199) or single IP', border: OutlineInputBorder())),
+      TextField(controller: _rangeCtrl, decoration: const InputDecoration(labelText: 'IP Range (e.g. 192.0.2.50-199) or single IP', border: OutlineInputBorder())),
       const SizedBox(height: 24),
       SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () {
         final input = _rangeCtrl.text;

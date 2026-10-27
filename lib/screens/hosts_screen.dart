@@ -321,7 +321,7 @@ class _HostsScreenState extends State<HostsScreen> {
                         TextField(
                           controller: ipCtrl,
                           decoration: const InputDecoration(
-                            labelText: 'IP or range (192.168.1.50-199)',
+                            labelText: 'IP or range (192.0.2.50-199)',
                             border: OutlineInputBorder(),
                           ),
                         ),
