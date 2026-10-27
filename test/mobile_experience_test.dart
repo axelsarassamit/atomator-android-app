@@ -12,6 +12,7 @@ import 'package:atomator_app/providers/host_provider.dart';
 import 'package:atomator_app/services/storage_service.dart';
 import 'package:atomator_app/screens/dashboard_screen.dart';
 import 'package:atomator_app/screens/hosts_screen.dart';
+import 'package:atomator_app/screens/setup_screen.dart';
 import 'package:atomator_app/theme.dart';
 
 SSHResult reading(String output, {bool success = true}) => SSHResult(
@@ -23,21 +24,23 @@ SSHResult reading(String output, {bool success = true}) => SSHResult(
 
 class PreviewStorage extends StorageService {
   @override
+  Future<void> saveCredentials(Credentials creds) async {}
+  @override
   List<Host> getHosts() => [
     Host(
-      ip: '192.168.1.10',
+      ip: '192.0.2.10',
       hostname: 'studio-server',
       group: 'Studio',
       isOnline: true,
       sshOpen: true,
     ),
     Host(
-      ip: '192.168.1.11',
+      ip: '192.0.2.11',
       hostname: 'workstation',
       group: 'Studio',
       isOnline: true,
     ),
-    Host(ip: '192.168.1.12', hostname: 'backup-node', group: 'Storage'),
+    Host(ip: '192.0.2.12', hostname: 'backup-node', group: 'Storage'),
   ];
   @override
   Future<Credentials?> getCredentials() async =>
@@ -159,6 +162,19 @@ void main() {
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     await tester.pumpWidget(app(const DashboardScreen(), hosts));
     await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('new setup requires an explicit host range', (tester) async {
+    final hosts = HostProvider(PreviewStorage());
+    await tester.pumpWidget(app(SetupScreen(storage: PreviewStorage()), hosts));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).at(0), 'test-user');
+    await tester.enterText(find.byType(TextField).at(1), 'test-only-password');
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Next'));
+    await tester.pumpAndSettle();
+    final hostField = tester.widget<TextField>(find.byType(TextField));
+    expect(hostField.controller!.text, isEmpty);
     expect(tester.takeException(), isNull);
   });
 

@@ -25,8 +25,8 @@
 1. Go to **Hosts** tab
 2. Tap the **+** button
 3. Enter an IP or range:
-   - Single: `192.168.0.50`
-   - Range: `192.168.0.50-199` (adds 150 hosts)
+   - Single: `192.0.2.50`
+   - Range: `192.0.2.50-199` (adds 150 hosts)
 4. Optionally set a group name (e.g. "office")
 5. Tap **Add**
 

@@ -44,7 +44,7 @@ class _DebugScreenState extends State<DebugScreen> {
         final gateway = '${parts[0]}.${parts[1]}.${parts[2]}.1';
         setState(() {
           _detectedNetwork = 'Your IP: $bestIp | Gateway: $gateway';
-          if (_ipCtrl.text.isEmpty || _ipCtrl.text == '192.168.1.1') {
+          if (_ipCtrl.text.isEmpty) {
             _ipCtrl.text = gateway;
           }
         });
@@ -61,6 +61,10 @@ class _DebugScreenState extends State<DebugScreen> {
   }
 
   Future<void> _runAllTests() async {
+    if (InternetAddress.tryParse(_ipCtrl.text.trim())?.type != InternetAddressType.IPv4) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter an IPv4 address from your own network first.')));
+      return;
+    }
     setState(() { _log.clear(); _running = true; });
 
     _addLog('=== ATOMATOR DEBUG ===');
@@ -125,7 +129,7 @@ class _DebugScreenState extends State<DebugScreen> {
     }
 
     // Test 5: Parallel SSH scan of full subnet
-    final base = ip.contains('.') ? ip.substring(0, ip.lastIndexOf('.')) : '192.168.0';
+    final base = ip.substring(0, ip.lastIndexOf('.'));
     _addLog('--- Test 5: Scan $base.1-100 for SSH (parallel) ---');
     int found = 0;
     final scanFutures = <Future<void>>[];

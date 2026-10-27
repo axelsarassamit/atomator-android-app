@@ -77,7 +77,7 @@ Whether you manage 5 machines or 500, Atomator lets you update, monitor, and con
 1. **Download** the [latest APK](https://github.com/axelsarassamit/atomator-android-app/releases)
 2. **Install** on your Android phone
 3. **Config tab** → set SSH username and password
-4. **Hosts tab** → tap + → enter IP or range (e.g. `192.168.0.50-199`)
+4. **Hosts tab** → tap + → enter IP or range (e.g. `192.0.2.50-199`)
 5. **Home tab** → Check All Hosts
 6. **Actions tab** → tap any command to run
 

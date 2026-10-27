@@ -10,7 +10,7 @@ class ManualScreen extends StatelessWidget {
       body: SafeArea(top: false, child: ListView(padding: const EdgeInsets.all(16), children: const [
         _Section('Getting Started'),
         _Item('1. Set Credentials', 'Go to Config tab and set your SSH username and password'),
-        _Item('2. Add Hosts', 'Go to Hosts tab, tap +, enter IP or range like 192.168.0.50-199'),
+        _Item('2. Add Hosts', 'Go to Hosts tab, tap +, enter IP or range like 192.0.2.50-199'),
         _Item('3. Check Status', 'On Home tab, tap Check All Hosts to scan your network'),
         _Item('4. Run Commands', 'Go to Actions tab to update, manage, or monitor your fleet'),
 

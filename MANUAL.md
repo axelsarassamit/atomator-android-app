@@ -11,8 +11,8 @@ Go to **Config** tab (bottom right) and tap **SSH Username** and **SSH Password*
 
 ### Step 2: Add Hosts
 Go to **Hosts** tab and tap the **+** button.
-- **Single host**: Enter an IP like `192.168.0.50`
-- **IP range**: Enter `192.168.0.50-199` to add 150 hosts at once
+- **Single host**: Enter an IP like `192.0.2.50`
+- **IP range**: Enter `192.0.2.50-199` to add 150 hosts at once
 - **Group name**: Organize hosts into groups like "office-a" or "servers"
 - **Custom credentials**: Check the box to set different SSH user/password for a specific host
 
