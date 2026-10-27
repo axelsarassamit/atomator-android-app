@@ -8,7 +8,7 @@ Direct SSH • 55+ Commands • Built-in Terminal • Wake-on-LAN • Fleet Dash
 
 [![Latest Release](https://img.shields.io/github/v/release/axelsarassamit/atomator-android-app?color=cyan&label=Latest)](https://github.com/axelsarassamit/atomator-android-app/releases)
 [![Downloads](https://img.shields.io/github/downloads/axelsarassamit/atomator-android-app/total?color=green&label=Downloads)](https://github.com/axelsarassamit/atomator-android-app/releases)
-[![License](https://img.shields.io/badge/License-Free-brightgreen)](LICENSE)
+[![License](https://img.shields.io/badge/Source-Proprietary-blue)](LICENSE)
 
 [**Download APK**](https://github.com/axelsarassamit/atomator-android-app/releases) • [**User Manual**](MANUAL.md) • [**CLI Version**](https://github.com/axelsarassamit/atomator)
 
@@ -177,3 +177,16 @@ Found a bug? Have a feature idea?
 ⚡ *The future of fleet management is in your pocket.*
 
 </div>
+
+## Licensing
+
+Original source code and original project materials are protected under
+[LICENSE](LICENSE). Official releases supplied with these terms may be used
+without a license fee for personal, noncommercial use under [EULA.md](EULA.md).
+Source reuse, redistribution and commercial or organizational application use
+require separate permission, except where another applicable license or law
+permits them.
+
+[Third-party notices](THIRD_PARTY_NOTICES.md) and bundled component licenses
+remain applicable. These terms do not revoke earlier grants or limit rights
+provided by third-party licenses.
